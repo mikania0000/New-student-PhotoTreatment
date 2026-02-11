@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>鳳甲國中新生照片管理系統 (GitHub版)</title>
-  <!-- 引入 Font Awesome 圖示 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   
   <style>
@@ -96,9 +96,13 @@
     .btn-purple { background: linear-gradient(to right, #8e24aa, #ba68c8); color: white; }
     .btn-cyan { background: linear-gradient(to right, #00bcd4, #4dd0e1); color: white; }
 
-    /* ----- 結果顯示區 ----- */
+    /* ----- 結果顯示區 (修正跑版問題) ----- */
     .bottom-result {
-      width: 100%; display: flex; justify-content: center; margin-top: 30px;
+      width: 100%; 
+      display: flex; 
+      flex-direction: column; /* ✅ 改為垂直排列，解決分頁按鈕跑版問題 */
+      align-items: center;    /* ✅ 水平置中 */
+      margin-top: 30px;
     }
 
     /* ----- 訊息提示 ----- */
