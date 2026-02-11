@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>鳳甲國中新生照片管理系統 (GitHub版)</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f7f7;
+      margin: 0;
+      padding: 30px 0;
+      overflow-x: auto;
+      min-width: 1600px;
+    }
+    /* 固定寬度 + 置中 */
+    .main-container {
+      width: 1300px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      position: relative;
+    }
+    h1 { font-size: 60px; text-align: center; margin-bottom: 20px; }
+    .main-title {
+      font-size: 65px;
+      font-weight: 900;
+      text-align: center;
+      background: linear-gradient(90deg, #2196f3, #42a5f5, #bbdefb);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.15);
+      margin-bottom: 30px;
+      letter-spacing: 2px;
+    }
+    .form-row { display: flex; justify-content: space-between; }
+    .form-box {
+      background: linear-gradient(to bottom right, #e0f7fa, #fffde7);
+      padding: 24px;
+      border-radius: 14px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      transition: all 0.3s ease;
+    }
+    .left-form { width: 100%; max-width: 1500px; margin: 0 auto; }
+    .input-group {
+      display: flex; align-items: center; gap: 10px;
+      justify-content: flex-start; padding-left: 100px;
+    }
+    .input-group:first-of-type { margin-top: 20px; }
+    .input-group label {
+      width: 120px; text-align: right; font-size: 26px; white-space: nowrap;
+    }
+    .input-group select, .input-group input {
+      width: 430px; font-size: 26px; padding: 5px;
+      border: 1px solid #64b5f6; border-radius: 5px;
+    }
+    .button-group {
+      display: flex; flex-wrap: wrap; gap: 12px;
+      justify-content: center; margin-top: 20px;
+    }
+    .btn {
+      font-size: 24px; padding: 10px 18px; border: none;
+      border-radius: 6px; color: white; cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      transition: transform 0.2s ease;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .btn:hover { transform: scale(1.05); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    
+    .btn-green { background: linear-gradient(to right, #4CAF50, #66BB6A); }
+    .btn-red { background: linear-gradient(to right, #F44336, #EF5350); }
+    .btn-blue { background: linear-gradient(to right, #2196F3, #42A5F5); }
+    .btn-pink { background: linear-gradient(to right, #EC407A, #F06292); }
+    .btn-yellow { background: linear-gradient(to right, #FFEB3B, #FDD835); color: black; }
+    .btn-orange { background: linear-gradient(to right, #FF9800, #FFA726); }
+    .btn-brown { background: linear-gradient(to right, #795548, #8D6E63); color: white; }
+    .btn-purple { background: linear-gradient(to right, #8e24aa, #ba68c8); color: white; }
+    .btn-cyan { background: linear-gradient(to right, #00bcd4, #4dd0e1); color: white; }
+
+    .bottom-result {
+      width: 100%; display: flex; justify-content: center; margin-top: 30px;
+    }
+    .msg {
+      font-size: 26px; color: white; padding: 12px 20px;
+      border-radius: 6px; position: fixed;
+      top: 50%; left: 50%; transform: translate(-50%, -50%);
+      z-index: 2000; display: none; text-align: center;
+      white-space: pre-line; max-width: 90%; word-break: break-word;
+    }
+    .msg-error { background: #d32f2f; }
+    .msg-success { background: #388e3c; }
+    .msg-info { background: #1976d2; }
+    .msg-progress { background: #ec407a; }
+
+    /* 表格樣式 */
+    table { width: 100%; border-collapse: collapse; font-size: 18px; text-align: center; background-color: #e3f2fd; border: 2px solid #90caf9; }
+    thead { background-color: #1976d2; color: white; font-size: 20px; }
+    tbody tr:nth-child(even) { background-color: #f1f8ff; }
+    tbody tr:nth-child(odd) { background-color: #e3f2fd; }
+    th, td { padding: 10px; border: 1px solid #90caf9; }
+
+    .modify-btn { background-color: #fdd835; color: black; border: none; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+    .delete-btn { background-color: #e53935; color: white; border: none; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+    .cancel-btn { background-color: #f48fb1; color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 18px; }
+
+    /* 統計盒子 */
+    .stats-box {
+      position: absolute; top: 220px; right: 280px; width: 340px;
+      background: linear-gradient(to bottom right, #fff9c4, #fffde7);
+      border-left: 10px solid #fbc02d; border-radius: 20px;
+      box-shadow: 4px 4px 18px rgba(0, 0, 0, 0.18);
+      padding: 24px 28px 20px 28px; font-size: 24px; color: #4e342e; z-index: 1000;
+    }
+    .stats-box h3 {
+      font-size: 32px; color: #e65100; margin: 5px 0 16px 0;
+      padding-bottom: 6px; font-weight: bold;
+      border-bottom: 2px solid #fbc02d; text-align: center;
+    }
+    .stats-box ul { list-style: none; padding-left: 0; margin: 0; }
+    .stats-box li {
+      font-size: 24px; margin-bottom: 2px; padding: 6px 10px; border-radius: 8px; line-height: 1.0;
+    }
+    .stats-box li:nth-child(even) { background-color: #fff8e1; }
+    .stats-box li:nth-child(odd) { background-color: #fffde7; }
+
+    /* 進階設定 */
+    #advanced-settings {
+      max-width: 800px; margin: 30px auto; padding: 20px;
+      background: #fbe9f7; border-radius: 12px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    .advanced-btn {
+      min-width: 150px; width: 180px; height: 56px; margin: 0;
+      padding: 0 8px; font-size: 20px; font-weight: bold; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center; white-space: nowrap;
+    }
+
+    .modal-mask {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.2); z-index: 10001; display: none;
+    }
+    .modal-dialog {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%); background: #fff8f2;
+      border-radius: 16px; box-shadow: 0 8px 36px #ff856710;
+      padding: 28px 32px; min-width: 270px; text-align: center;
+    }
+
+    @media screen and (max-width: 1700px) {
+      .main-container { width: 95%; }
+    }
+  </style>
+
+  <script>
+    // ✅ 設定 Google Apps Script 部署網址 (Deploy ID)
+    const DEPLOY_ID = 'AKfycbxyj4HI3ZyvXnSrZechSG7ODYSeyLFusBWLIfp7Ezoh435chugb-2Xr7doTUpgj-WfclA';
+    const GAS_URL = `https://script.google.com/macros/s/${DEPLOY_ID}/exec`;
+
+    // ✅ 通用 API 呼叫函式 (取代 google.script.run)
+    async function callApi(action, data = {}) {
+      try {
+        const payload = { action: action, data: data };
+        
+        // ⚠️ 重要：使用 POST 且不指定 Content-Type 為 application/json
+        // 這樣瀏覽器會以 text/plain 發送，避免觸發 GAS 不支援的 CORS Preflight (OPTIONS)
+        const response = await fetch(GAS_URL, {
+          method: 'POST',
+          body: JSON.stringify(payload) 
+        });
+        
+        const json = await response.json();
+        
+        // 處理 GAS 回傳的結構
+        if (json.status === 'success') {
+          return json.data;
+        } else {
+          throw new Error(json.message || '未知錯誤');
+        }
+      } catch (e) {
+        console.error("API Error:", e);
+        showMessage('連線錯誤: ' + e.message, 'error', 5);
+        throw e;
+      }
+    }
+  </script>
+</head>
+<body>
+  <div class="main-container">
+    <h1 class="main-title">鳳甲國中新生照片管理系統</h1>
+    <div class="form-row">
+      <div class="form-box left-form">
+        <div class="input-group">
+          <label for="grade">年級</label>
+          <select id="grade">
+            <option value="" selected></option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label for="class">班級</label>
+          <select id="class"></select>
+        </div>
+        <div class="input-group">
+          <label for="seat">座號</label>
+          <select id="seat"></select>
+        </div>
+        <div class="input-group">
+          <label for="name">姓名</label>
+          <input id="name" type="text">
+        </div>
+        <div class="input-group">
+          <label for="sid">學號</label>
+          <input id="sid" type="text">
+        </div>
+        <div class="input-group">
+          <label for="repeat">重複上傳</label>
+          <select id="repeat">
+            <option value=""></option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4+">4次以上</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label for="status">處理情形</label>
+          <select id="status">
+            <option value=""> </option>
+            <option value="已上傳，合格">合格</option>
+            <option value="不合格">不合格</option>
+            <option value="審核中">審核中</option>
+          </select>
+        </div>
+        
+        <!-- 右側統計資料 -->
+        <div class="stats-box" id="summary-content">
+          <h3>📸 <span>照片處理統計表</span></h3>
+          <div>⏳ 載入中...</div>
+        </div>
+
+        <div class="button-group">
+          <button class="btn btn-green" onclick="handleQuery()">查詢</button>
+          <button class="btn btn-red" onclick="handleClear()">清除</button>
+          <button class="btn btn-blue" onclick="handleUnsubmitted()">未上傳</button>
+          <button class="btn btn-brown" onclick="showStatsTable()">
+            <i class="fas fa-chart-bar"></i> 班級統計表
+          </button>
+          <button class="btn btn-yellow" onclick="window.open('https://script.google.com/a/macros/fjm.kh.edu.tw/s/AKfycbxnwWvYKb7GJEJMxwkV29JhGsOJ2Lwx45TurUtWbhgk53MWk0uL-vPCXzI3dZM6Fvk1/exec')">去背網頁</button>
+          <button class="btn btn-orange" onclick="window.open('https://mikania0000.github.io/New-student-PhotoUpload/')">照片上傳網頁</button>
+          <button class="btn btn-pink" onclick="window.open('https://script.google.com/a/macros/fjm.kh.edu.tw/s/AKfycby0U79yGo9rWVnw9J7RBCnJi6HDi-UK-v5dCUYOtUEUQjFyulNhKM5P_zZFJIAJT8MS/exec')">編班查詢網頁</button>
+          <button class="btn btn-purple" onclick="showAdvancedSettings()">進階設定</button>
+        </div>
+
+        <!-- 查詢結果顯示區 -->
+        <div class="bottom-result" id="result-container"></div>
+      </div>
+    </div>
+
+    <!-- 班級統計表顯示區 -->
+    <div class="bottom-result" id="stats-container"></div>
+
+    <!-- 進階設定區 -->
+    <div id="advanced-settings" style="display:none; text-align:center;">
+      <h2 style="font-size:36px; color:#6a1b9a; margin-bottom:20px; text-shadow:1px 1px 3px rgba(0,0,0,0.2);">
+        ⚙️ 進階設定選單
+      </h2>
+      <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:16px; margin-bottom:25px; background:#f3e5f5; padding:20px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+        <button class="btn btn-purple advanced-btn" onclick="window.open('https://docs.google.com/spreadsheets/d/1-iIXTbEeIqzaMnWQowqyvOquqZQLJpnRCUST-mVZ1Tw/edit')">📄原始工作表</button>
+        <button class="btn btn-green advanced-btn" onclick="clearPhotoData()">🧹清空資料</button>
+        <button class="btn btn-red advanced-btn" onclick="importClassToList()">🧒匯入新生名單</button>
+        <button class="btn btn-blue advanced-btn" onclick="importTeacherList()">👨‍🏫匯入導師名單</button>
+        <button class="btn btn-orange advanced-btn" onclick="openPhotoFolder()">📂大頭照資料夾</button>
+      </div>
+      <button class="cancel-btn" onclick="hideAdvancedSettings()">❌ 離開設定</button>
+    </div>
+  </div>
+
+  <!-- 漂浮提示訊息 -->
+  <div id="floating-msg" class="msg"></div>
+
+  <!-- 匯入檔案用 Input -->
+  <input type="file" id="excel-upload" accept=".xlsx" style="display:none" />
+  <input type="file" id="teacher-excel-upload" accept=".xlsx" style="display:none" />
+
+  <!-- 通用 Modal -->
+  <div id="modal-mask" class="modal-mask">
+    <div id="modal-dialog" class="modal-dialog">
+      <div id="modal-message" style="font-size:28px; margin-bottom:30px; color:#a30000;"></div>
+      <button id="modal-ok-btn" style="font-size:24px; background:#43a047; color:#fff; border:none; border-radius:10px; padding:8px 28px; margin-right:24px; cursor:pointer;">確定</button>
+      <button id="modal-cancel-btn" style="font-size:24px; background:#bdbdbd; color:#333; border:none; border-radius:10px; padding:8px 28px; cursor:pointer;">取消</button>
+    </div>
+  </div>
+
+  <script>
+    // ---------------- UI 工具函式 ----------------
+    function showMessage(text, type = 'info', durationInSeconds = 3) {
+      const msg = document.getElementById('floating-msg');
+      msg.className = `msg msg-${type}`;
+      msg.innerText = text;
+      msg.style.display = 'block';
+      setTimeout(() => { msg.style.display = 'none'; }, durationInSeconds * 1000);
+    }
+
+    let progressInterval;
+    function showProgress(text = '處理中') {
+      const msg = document.getElementById('floating-msg');
+      let percent = 10;
+      msg.className = 'msg msg-progress';
+      msg.innerText = `⏳ ${text}...${percent}%`;
+      msg.style.display = 'block';
+      progressInterval = setInterval(() => {
+        percent += 10;
+        if (percent <= 90) msg.innerText = `⏳ ${text}...${percent}%`;
+        else clearInterval(progressInterval);
+      }, 300);
+    }
+
+    function finishProgress(callback) {
+      clearInterval(progressInterval);
+      const msg = document.getElementById('floating-msg');
+      msg.innerText = '⏳ 完成...100%';
+      setTimeout(() => {
+        msg.style.display = 'none';
+        if (callback) callback();
+      }, 500);
+    }
+
+    function showConfirmModal(msg, onOk) {
+      const mask = document.getElementById('modal-mask');
+      document.getElementById('modal-message').innerText = msg;
+      mask.style.display = 'block';
+
+      const okBtn = document.getElementById('modal-ok-btn');
+      const cancelBtn = document.getElementById('modal-cancel-btn');
+      
+      // 移除舊的 event listener，避免重複綁定
+      const newOk = okBtn.cloneNode(true);
+      const newCancel = cancelBtn.cloneNode(true);
+      okBtn.parentNode.replaceChild(newOk, okBtn);
+      cancelBtn.parentNode.replaceChild(newCancel, cancelBtn);
+
+      newOk.onclick = function() {
+        mask.style.display = 'none';
+        if (typeof onOk === 'function') onOk();
+      };
+      newCancel.onclick = function() {
+        mask.style.display = 'none';
+      };
+    }
+
+    function handleClear() {
+      ['grade','class','seat','status','name','sid','repeat'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('result-container').innerHTML = '';
+      document.getElementById('stats-container').innerHTML = '';
+      document.getElementById('advanced-settings').style.display = 'none';
+      
+      // 重置選單
+      initSelects();
+    }
+
+    // ---------------- 核心功能邏輯 ----------------
+
+    function handleUnsubmitted() {
+      document.getElementById('result-container').innerHTML = '';
+      document.getElementById('stats-container').innerHTML = '';
+      showProgress('查詢未上傳');
+      
+      callApi('getUnsubmitted')
+        .then(data => {
+          finishProgress(() => {
+            if (data.length === 0) {
+              showMessage('⚠️ 查無未上傳資料!', 'info', 3);
+            } else {
+              const html = `
+                <table style="width:80%; margin:12px auto; box-shadow:0 0 10px rgba(255,193,7,0.3); border:2px solid #fbc02d;">
+                  <thead style="background-color:#ffeb3b;">
+                    <tr><th>班級</th><th>座號</th><th>姓名</th><th>學號</th><th>繳交情形</th></tr>
+                  </thead>
+                  <tbody>
+                    ${data.map(r => `
+                      <tr><td>${r.classNo}</td><td>${r.seatNo}</td><td>${r.name}</td><td>${r.sid}</td><td>${r.status}</td></tr>
+                    `).join('')}
+                  </tbody>
+                </table>`;
+              document.getElementById('result-container').innerHTML = html;
+            }
+          });
+        });
+    }
+
+    let currentAllData = [];
+    let currentPage = 1;
+    const pageSize = 30;
+
+    function handleQuery() {
+      const filters = {
+        grade: document.getElementById('grade').value,
+        classNo: document.getElementById('class').value,
+        seatNo: document.getElementById('seat').value,
+        name: document.getElementById('name').value.trim(),
+        sid: document.getElementById('sid').value.trim(),
+        status: document.getElementById('status').value,
+        repeat: document.getElementById('repeat').value
+      };
+
+      if (Object.values(filters).every(x => !x)) {
+        showMessage('❌ 請輸入查詢條件', 'error', 3);
+        return;
+      }
+
+      document.getElementById('result-container').innerHTML = '';
+      document.getElementById('stats-container').innerHTML = '';
+      document.getElementById('advanced-settings').style.display = 'none';
+
+      showProgress('查詢中');
+
+      callApi('query', filters)
+        .then(allData => {
+          finishProgress(() => {
+            if (!allData || allData.length === 0) {
+              showMessage('⚠️ 查無任何資料!', 'info', 3);
+              return;
+            }
+            // 排序
+            allData.sort((a, b) => a.grade - b.grade || a.classNo - b.classNo || a.seatNo - b.seatNo);
+            currentAllData = allData;
+            currentPage = 1;
+            renderPage();
+            showMessage('✅ 查詢成功', 'success', 2);
+          });
+        });
+    }
+
+    function renderPage() {
+      const pageCount = Math.max(1, Math.ceil(currentAllData.length / pageSize));
+      const start = (currentPage - 1) * pageSize;
+      const data = currentAllData.slice(start, start + pageSize);
+      const resultBox = document.getElementById('result-container');
+
+      const pagerHtml = (pos) => `
+        <div style="display:flex; align-items:center; justify-content:center; gap:12px; margin:12px 0;">
+          <button onclick="changePage(1)" class="btn btn-blue" ${currentPage<=1?'disabled':''}>首頁</button>
+          <button onclick="changePage(${currentPage-1})" class="btn btn-blue" ${currentPage<=1?'disabled':''}>上一頁</button>
+          <div style="font-size:18px; font-weight:600;">第 ${currentPage} / ${pageCount} 頁｜共 ${currentAllData.length} 筆</div>
+          <button onclick="changePage(${currentPage+1})" class="btn btn-blue" ${currentPage>=pageCount?'disabled':''}>下一頁</button>
+          <button onclick="changePage(${pageCount})" class="btn btn-blue" ${currentPage>=pageCount?'disabled':''}>末頁</button>
+        </div>`;
+
+      const tableHtml = `
+        <table border="1" style="width:100%; table-layout: fixed;">
+          <thead>
+            <tr>
+              <th style="width:40px;">年級</th><th style="width:40px;">班級</th><th style="width:40px;">座號</th>
+              <th style="width:60px;">姓名</th><th style="width:80px;">學號</th>
+              <th style="width:230px; word-break: break-all;">相片網址</th>
+              <th style="width:200px;">相片</th>
+              <th style="width:160px;">註冊組處理</th>
+              <th style="width:100px;">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${data.map(r => `
+              <tr data-uuid="${r.uuid}" data-orig-url="${r.photoUrl||''}" data-orig-status="${r.status||''}" data-orig-name="${r.name||''}">
+                <td>${r.grade}</td><td>${r.classNo}</td><td>${r.seatNo}</td><td>${r.name}</td><td>${r.sid}</td>
+                <td class="photo-url" style="word-break: break-all;">
+                  ${r.photoUrl ? `<a href="${r.photoUrl}" target="_blank" style="color:blue;">${r.photoUrl}</a>` : ''}
+                </td>
+                <td class="photo-img" data-file-id="${extractDriveFileId(r.photoUrl)}">
+                  <span class="loading-text">載入中...</span>
+                </td>
+                <td class="status-cell"><span>${r.status || ''}</span></td>
+                <td>
+                  <div style="display:flex; flex-direction:column; gap:6px; align-items:center;">
+                    <button class="modify-btn" onclick="editRow(this)">修改</button>
+                    <button class="delete-btn" onclick="deleteRow(this)">刪除</button>
+                    <button class="cancel-btn" onclick="cancelEdit(this)" style="font-size:14px; padding:4px 10px;">取消</button>
+                    <button class="btn btn-cyan" style="font-size:16px; padding:6px 12px; border-radius:10px;" onclick="refreshImage(this)">重匯</button>
+                    <button class="btn btn-orange rename-btn" style="font-size:16px; padding:6px 12px; border-radius:10px;" onclick="startRename(this)">改名</button>
+                  </div>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>`;
+
+      resultBox.innerHTML = pagerHtml('top') + tableHtml + pagerHtml('bottom');
+      loadImages();
+    }
+
+    function changePage(p) {
+      currentPage = p;
+      renderPage();
+    }
+
+    function extractDriveFileId(url) {
+      if(!url) return null;
+      const match = url.match(/\/d\/([a-zA-Z0-9_-]{25,})/);
+      return match ? match[1] : null;
+    }
+
+    function loadImages() {
+      document.querySelectorAll('.photo-img').forEach(td => {
+        const fileId = td.getAttribute('data-file-id');
+        if (fileId) {
+          callApi('getImage', {fileId: fileId})
+            .then(res => {
+              if (res && res.url) {
+                td.innerHTML = `
+                  <div style="display:flex; flex-direction:column; align-items:center;">
+                    <img src="${res.url}" style="max-height:160px; max-width:180px; object-fit:contain;">
+                    <div style="font-size:16px; margin-top:4px; color:#555;">${res.name || ''}</div>
+                  </div>`;
+              } else {
+                td.innerHTML = `<span style="color:red;">無法顯示</span>`;
+              }
+            });
+        } else {
+          td.innerHTML = `<span style="color:gray;">無法顯示</span>`;
+        }
+      });
+    }
+
+    function editRow(btn) {
+      const row = btn.closest('tr');
+      const photoCell = row.querySelector('.photo-url');
+      const statusCell = row.querySelector('.status-cell');
+      const uuid = row.dataset.uuid;
+
+      if (btn.innerText === '修改') {
+        const currentPhoto = photoCell.innerText.trim();
+        photoCell.innerHTML = `<input type="text" value="${currentPhoto}" style="width:210px;">`;
+        
+        const currentStatus = statusCell.innerText.trim();
+        const mainStatus = currentStatus.includes("不合格") ? "不合格，重新上傳" : currentStatus;
+        const reason = currentStatus.includes("：") ? currentStatus.split("：")[1] : "";
+        
+        statusCell.innerHTML = `
+          <select onchange="this.nextElementSibling.style.display=(this.value=='不合格，重新上傳'?'block':'none')" style="width:150px;">
+            <option ${mainStatus=='已上傳，審核中'?'selected':''}>已上傳，審核中</option>
+            <option ${mainStatus=='已上傳，合格'?'selected':''}>已上傳，合格</option>
+            <option ${mainStatus=='不合格，重新上傳'?'selected':''}>不合格，重新上傳</option>
+          </select>
+          <div style="display:${mainStatus=='不合格，重新上傳'?'block':'none'}; margin-top:5px;">
+            <input type="text" value="${reason}" placeholder="原因" style="width:140px;">
+          </div>`;
+          
+        btn.innerText = '確定';
+        btn.style.background = '#4CAF50';
+        btn.style.color = 'white';
+      } else {
+        const newPhoto = photoCell.querySelector('input').value.trim();
+        const select = statusCell.querySelector('select');
+        const reasonInput = statusCell.querySelector('input');
+        let newStatus = select.value;
+        if (newStatus === '不合格，重新上傳' && reasonInput.value.trim()) {
+          newStatus += "：" + reasonInput.value.trim();
+        }
+
+        showProgress('更新中');
+        callApi('update', {uuid, newPhotoUrl: newPhoto, newStatus: newStatus})
+          .then(res => {
+            finishProgress(() => {
+              if(res) {
+                showMessage('✅ 資料已更新', 'success');
+                // 更新原始數據屬性
+                row.dataset.origUrl = newPhoto;
+                row.dataset.origStatus = newStatus;
+                
+                // 還原顯示
+                photoCell.innerHTML = newPhoto ? `<a href="${newPhoto}" target="_blank" style="color:blue;">${newPhoto}</a>` : '';
+                statusCell.innerHTML = `<span>${newStatus}</span>`;
+                btn.innerText = '修改';
+                btn.style.background = '#fdd835';
+                btn.style.color = 'black';
+                
+                // 刷新圖片
+                const imgTd = row.querySelector('.photo-img');
+                imgTd.setAttribute('data-file-id', extractDriveFileId(newPhoto));
+                loadImages();
+              } else {
+                showMessage('❌ 更新失敗', 'error');
+              }
+            });
+          });
+      }
+    }
+
+    function cancelEdit(btn) {
+      const row = btn.closest('tr');
+      const modifyBtn = row.querySelector('.modify-btn');
+      
+      // 還原內容
+      const origUrl = row.dataset.origUrl;
+      const origStatus = row.dataset.origStatus;
+      
+      row.querySelector('.photo-url').innerHTML = origUrl ? `<a href="${origUrl}" target="_blank" style="color:blue;">${origUrl}</a>` : '';
+      row.querySelector('.status-cell').innerHTML = `<span>${origStatus}</span>`;
+      
+      // 還原按鈕
+      if (modifyBtn.innerText === '確定') {
+        modifyBtn.innerText = '修改';
+        modifyBtn.style.background = '#fdd835';
+        modifyBtn.style.color = 'black';
+      }
+      
+      // 還原改名狀態
+      const renameBtn = row.querySelector('.rename-btn');
+      const nameDiv = row.querySelector('.photo-img div div'); // 檔名 div
+      if (renameBtn && renameBtn.innerText === '確定' && nameDiv && nameDiv.dataset.origName) {
+        nameDiv.innerHTML = nameDiv.dataset.origName;
+        renameBtn.innerText = "改名";
+        renameBtn.classList.remove("btn-green");
+        renameBtn.classList.add("btn-orange");
+        renameBtn.onclick = function() { startRename(this); };
+      }
+    }
+
+    function deleteRow(btn) {
+      const row = btn.closest('tr');
+      const uuid = row.dataset.uuid;
+      const name = row.children[3].innerText;
+      
+      showConfirmModal(`⚠️ 確定刪除 ${name} 的資料？`, () => {
+        showProgress('刪除中');
+        callApi('delete', {uuid: uuid}).then(res => {
+          finishProgress(() => {
+            if(res) {
+              showMessage('✅ 已刪除', 'success');
+              row.remove();
+            } else {
+              showMessage('❌ 刪除失敗', 'error');
+            }
+          });
+        });
+      });
+    }
+
+    function refreshImage(btn) {
+      const row = btn.closest('tr');
+      const imgTd = row.querySelector('.photo-img');
+      const fileId = extractDriveFileId(row.querySelector('.photo-url a')?.href);
+      
+      if (!fileId) { showMessage('無有效圖片連結', 'error'); return; }
+      
+      imgTd.innerHTML = '<span class="loading-text">重新載入...</span>';
+      callApi('getImage', {fileId}).then(res => {
+        if (res && res.url) {
+           imgTd.innerHTML = `
+              <div style="display:flex; flex-direction:column; align-items:center;">
+                <img src="${res.url}" style="max-height:160px; max-width:180px; object-fit:contain;">
+                <div style="font-size:16px; margin-top:4px; color:#555;">${res.name || ''}</div>
+              </div>`;
+        } else {
+           imgTd.innerHTML = '<span style="color:red">無法顯示</span>';
+        }
+      });
+    }
+
+    function startRename(btn) {
+      const row = btn.closest('tr');
+      const imgCell = row.querySelector('.photo-img');
+      const nameDiv = imgCell.querySelector('div:last-child'); // 檔名所在的 div
+      
+      if (!nameDiv) { showMessage("找不到圖片或檔名", "error"); return; }
+      
+      const originalName = nameDiv.innerText.trim();
+      nameDiv.dataset.origName = originalName; // 暫存
+      nameDiv.innerHTML = `<input type="text" value="${originalName}" style="width:140px;">`;
+      
+      btn.innerText = "確定";
+      btn.classList.remove("btn-orange");
+      btn.classList.add("btn-green");
+      btn.onclick = function() { confirmRename(this); };
+    }
+
+    function confirmRename(btn) {
+      const row = btn.closest('tr');
+      const imgCell = row.querySelector('.photo-img');
+      const input = imgCell.querySelector('input');
+      const newName = input.value.trim();
+      const fileId = extractDriveFileId(row.querySelector('.photo-url a')?.href);
+
+      if (!fileId || !newName) { showMessage("參數錯誤", "error"); return; }
+
+      showProgress('改名中');
+      callApi('renameFile', {fileId, newName}).then(res => {
+        finishProgress(() => {
+           if(res === 'OK') {
+             showMessage("✅ 改名成功", "success");
+             refreshImage(btn); // 重新讀取以顯示新檔名
+             // 復原按鈕
+             btn.innerText = "改名";
+             btn.classList.remove("btn-green");
+             btn.classList.add("btn-orange");
+             btn.onclick = function() { startRename(this); };
+           } else {
+             showMessage("❌ " + res, "error");
+           }
+        });
+      });
+    }
+
+    // ---------------- 其他功能 ----------------
+
+    function showStatsTable() {
+      document.getElementById("result-container").innerHTML = '';
+      showMessage('⏳ 載入班級統計表...', 'info');
+      callApi('getStatsTable').then(html => {
+        document.getElementById("stats-container").innerHTML = html;
+        showMessage('✅ 統計表載入完成', 'success');
+      });
+    }
+
+    function updateSummaryStats() {
+      callApi('getSummaryStats').then(rows => {
+        const statsBox = document.getElementById("summary-content");
+        const oldList = statsBox.querySelector("ul"); if (oldList) oldList.remove();
+        const loading = statsBox.querySelector("div"); if (loading) loading.remove();
+        
+        if (!rows || rows.length === 0) {
+           statsBox.innerHTML += '<div>❌ 無資料</div>'; return;
+        }
+        
+        const ul = document.createElement("ul");
+        rows.forEach(row => {
+          const li = document.createElement("li");
+          li.innerHTML = `🔹 <strong>${row[0]}</strong>：${row[1]}`;
+          ul.appendChild(li);
+        });
+        statsBox.appendChild(ul);
+      }).catch(e => console.log("統計更新失敗(可能網路問題)"));
+    }
+
+    function showAdvancedSettings() {
+      document.getElementById("result-container").innerHTML = '';
+      document.getElementById("stats-container").innerHTML = '';
+      document.getElementById("advanced-settings").style.display = 'block';
+    }
+    function hideAdvancedSettings() {
+      document.getElementById('advanced-settings').style.display = 'none';
+    }
+    function openPhotoFolder() {
+      window.open('https://drive.google.com/drive/folders/10yEt8JypErikfmy2PguhEB8pZx7zgz9j', '_blank');
+    }
+    function clearPhotoData() {
+      showConfirmModal("⚠️ 確定清空所有大頭照資料？", () => {
+         showProgress('清空中');
+         callApi('clearData').then(() => {
+           finishProgress(() => showMessage('✅ 已清空', 'success'));
+         });
+      });
+    }
+
+    // 匯入 Excel 邏輯
+    function handleImport(type) {
+      const isTeacher = type === 'teacher';
+      const msg = isTeacher ? "重新匯入導師名單？" : "重新匯入新生名單？";
+      const apiAction = isTeacher ? 'importTeacher' : 'importList';
+      const inputId = isTeacher ? 'teacher-excel-upload' : 'excel-upload';
+
+      showConfirmModal(`⚠️ ${msg}`, () => {
+         const input = document.getElementById(inputId);
+         input.value = '';
+         input.onchange = (e) => {
+           const file = e.target.files[0];
+           if(!file) return;
+           
+           showProgress('讀取 Excel');
+           const reader = new FileReader();
+           reader.onload = (evt) => {
+             const data = new Uint8Array(evt.target.result);
+             const workbook = XLSX.read(data, {type: 'array'});
+             const ws = workbook.Sheets[workbook.SheetNames[0]];
+             const json = XLSX.utils.sheet_to_json(ws, {header:1, defval:""});
+             
+             // 簡單檢查標題 (略過詳細檢查以求簡潔)
+             if(json.length < 2) { finishProgress(()=>showMessage("❌ 檔案為空", "error")); return; }
+             
+             // 整理資料 (移除標題列)
+             const listData = json.slice(1).filter(row => row.some(cell => !!cell));
+             
+             showProgress('匯入資料庫');
+             callApi(apiAction, {listData}).then(() => {
+                finishProgress(() => showMessage("✅ 匯入成功", "success"));
+             });
+           };
+           reader.readAsArrayBuffer(file);
+         };
+         input.click();
+      });
+    }
+    
+    function importClassToList() { handleImport('student'); }
+    function importTeacherList() { handleImport('teacher'); }
+
+    function initSelects() {
+      const cls = document.getElementById('class');
+      const seat = document.getElementById('seat');
+      cls.innerHTML = '<option value=""></option>' + Array.from({length:17}, (_,i) =>
+        `<option value="${String(i+1).padStart(2,'0')}">${String(i+1).padStart(2,'0')}</option>`).join('');
+      seat.innerHTML = '<option value=""></option>' + Array.from({length:30}, (_,i) =>
+        `<option value="${String(i+1).padStart(2,'0')}">${String(i+1).padStart(2,'0')}</option>`).join('');
+    }
+
+    window.onload = () => {
+      initSelects();
+      updateSummaryStats();
+      setInterval(updateSummaryStats, 10000); // 10秒更新一次
+    };
+  </script>
+</body>
+</html>
