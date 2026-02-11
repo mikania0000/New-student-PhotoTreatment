@@ -274,10 +274,12 @@
         ⚙️ 進階設定選單
       </h2>
       <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:16px; margin-bottom:25px; background:#f3e5f5; padding:20px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-        <button class="btn btn-purple advanced-btn" onclick="window.open('https://docs.google.com/spreadsheets/d/1-iIXTbEeIqzaMnWQowqyvOquqZQLJpnRCUST-mVZ1Tw/edit')">📄原始工作表</button>
+        <!-- ✅ 更新原始工作表連結 -->
+        <button class="btn btn-purple advanced-btn" onclick="window.open('https://docs.google.com/spreadsheets/d/1-iIXTbEeIqzaMnWQowqyvOquqZQLJpnRCUST-mVZ1Tw/edit?gid=1164346300#gid=1164346300')">📄原始工作表</button>
         <button class="btn btn-green advanced-btn" onclick="clearPhotoData()">🧹清空資料</button>
         <button class="btn btn-red advanced-btn" onclick="importClassToList()">🧒匯入新生名單</button>
         <button class="btn btn-blue advanced-btn" onclick="importTeacherList()">👨‍🏫匯入導師名單</button>
+        <!-- ✅ 更新資料夾連結 -->
         <button class="btn btn-orange advanced-btn" onclick="openPhotoFolder()">📂大頭照資料夾</button>
       </div>
       <button class="cancel-btn" onclick="hideAdvancedSettings()">❌ 離開設定</button>
@@ -342,7 +344,6 @@
       const okBtn = document.getElementById('modal-ok-btn');
       const cancelBtn = document.getElementById('modal-cancel-btn');
       
-      // 移除舊的 event listener，避免重複綁定
       const newOk = okBtn.cloneNode(true);
       const newCancel = cancelBtn.cloneNode(true);
       okBtn.parentNode.replaceChild(newOk, okBtn);
@@ -362,8 +363,6 @@
       document.getElementById('result-container').innerHTML = '';
       document.getElementById('stats-container').innerHTML = '';
       document.getElementById('advanced-settings').style.display = 'none';
-      
-      // 重置選單
       initSelects();
     }
 
@@ -430,7 +429,6 @@
               showMessage('⚠️ 查無任何資料!', 'info', 3);
               return;
             }
-            // 排序
             allData.sort((a, b) => a.grade - b.grade || a.classNo - b.classNo || a.seatNo - b.seatNo);
             currentAllData = allData;
             currentPage = 1;
@@ -571,18 +569,15 @@
             finishProgress(() => {
               if(res) {
                 showMessage('✅ 資料已更新', 'success');
-                // 更新原始數據屬性
                 row.dataset.origUrl = newPhoto;
                 row.dataset.origStatus = newStatus;
                 
-                // 還原顯示
                 photoCell.innerHTML = newPhoto ? `<a href="${newPhoto}" target="_blank" style="color:blue;">${newPhoto}</a>` : '';
                 statusCell.innerHTML = `<span>${newStatus}</span>`;
                 btn.innerText = '修改';
                 btn.style.background = '#fdd835';
                 btn.style.color = 'black';
                 
-                // 刷新圖片
                 const imgTd = row.querySelector('.photo-img');
                 imgTd.setAttribute('data-file-id', extractDriveFileId(newPhoto));
                 loadImages();
@@ -598,23 +593,20 @@
       const row = btn.closest('tr');
       const modifyBtn = row.querySelector('.modify-btn');
       
-      // 還原內容
       const origUrl = row.dataset.origUrl;
       const origStatus = row.dataset.origStatus;
       
       row.querySelector('.photo-url').innerHTML = origUrl ? `<a href="${origUrl}" target="_blank" style="color:blue;">${origUrl}</a>` : '';
       row.querySelector('.status-cell').innerHTML = `<span>${origStatus}</span>`;
       
-      // 還原按鈕
       if (modifyBtn.innerText === '確定') {
         modifyBtn.innerText = '修改';
         modifyBtn.style.background = '#fdd835';
         modifyBtn.style.color = 'black';
       }
       
-      // 還原改名狀態
       const renameBtn = row.querySelector('.rename-btn');
-      const nameDiv = row.querySelector('.photo-img div div'); // 檔名 div
+      const nameDiv = row.querySelector('.photo-img div div');
       if (renameBtn && renameBtn.innerText === '確定' && nameDiv && nameDiv.dataset.origName) {
         nameDiv.innerHTML = nameDiv.dataset.origName;
         renameBtn.innerText = "改名";
@@ -668,12 +660,12 @@
     function startRename(btn) {
       const row = btn.closest('tr');
       const imgCell = row.querySelector('.photo-img');
-      const nameDiv = imgCell.querySelector('div:last-child'); // 檔名所在的 div
+      const nameDiv = imgCell.querySelector('div:last-child');
       
       if (!nameDiv) { showMessage("找不到圖片或檔名", "error"); return; }
       
       const originalName = nameDiv.innerText.trim();
-      nameDiv.dataset.origName = originalName; // 暫存
+      nameDiv.dataset.origName = originalName; 
       nameDiv.innerHTML = `<input type="text" value="${originalName}" style="width:140px;">`;
       
       btn.innerText = "確定";
@@ -696,8 +688,7 @@
         finishProgress(() => {
            if(res === 'OK') {
              showMessage("✅ 改名成功", "success");
-             refreshImage(btn); // 重新讀取以顯示新檔名
-             // 復原按鈕
+             refreshImage(btn);
              btn.innerText = "改名";
              btn.classList.remove("btn-green");
              btn.classList.add("btn-orange");
@@ -708,8 +699,6 @@
         });
       });
     }
-
-    // ---------------- 其他功能 ----------------
 
     function showStatsTable() {
       document.getElementById("result-container").innerHTML = '';
@@ -748,9 +737,12 @@
     function hideAdvancedSettings() {
       document.getElementById('advanced-settings').style.display = 'none';
     }
+    
+    // ✅ 更新：開啟資料夾
     function openPhotoFolder() {
-      window.open('https://drive.google.com/drive/folders/10yEt8JypErikfmy2PguhEB8pZx7zgz9j', '_blank');
+      window.open('https://drive.google.com/drive/folders/1PXYSIsQK61MxsoyZWoa8zwvhlw2oMgZu?usp=drive_link', '_blank');
     }
+    
     function clearPhotoData() {
       showConfirmModal("⚠️ 確定清空所有大頭照資料？", () => {
          showProgress('清空中');
@@ -760,12 +752,17 @@
       });
     }
 
-    // 匯入 Excel 邏輯
+    // ✅ 新增：更嚴謹的 Excel 解析邏輯
     function handleImport(type) {
       const isTeacher = type === 'teacher';
       const msg = isTeacher ? "重新匯入導師名單？" : "重新匯入新生名單？";
       const apiAction = isTeacher ? 'importTeacher' : 'importList';
       const inputId = isTeacher ? 'teacher-excel-upload' : 'excel-upload';
+
+      // 定義需要的欄位名稱
+      const requiredHeaders = isTeacher 
+        ? ['班級', '導師'] 
+        : ['班級', '座號', '身分證後四碼', '姓名', '學號'];
 
       showConfirmModal(`⚠️ ${msg}`, () => {
          const input = document.getElementById(inputId);
@@ -777,21 +774,63 @@
            showProgress('讀取 Excel');
            const reader = new FileReader();
            reader.onload = (evt) => {
-             const data = new Uint8Array(evt.target.result);
-             const workbook = XLSX.read(data, {type: 'array'});
-             const ws = workbook.Sheets[workbook.SheetNames[0]];
-             const json = XLSX.utils.sheet_to_json(ws, {header:1, defval:""});
-             
-             // 簡單檢查標題 (略過詳細檢查以求簡潔)
-             if(json.length < 2) { finishProgress(()=>showMessage("❌ 檔案為空", "error")); return; }
-             
-             // 整理資料 (移除標題列)
-             const listData = json.slice(1).filter(row => row.some(cell => !!cell));
-             
-             showProgress('匯入資料庫');
-             callApi(apiAction, {listData}).then(() => {
-                finishProgress(() => showMessage("✅ 匯入成功", "success"));
-             });
+             try {
+               const data = new Uint8Array(evt.target.result);
+               const workbook = XLSX.read(data, {type: 'array'});
+               const ws = workbook.Sheets[workbook.SheetNames[0]];
+               
+               // 轉為 JSON，首列為標題
+               const json = XLSX.utils.sheet_to_json(ws, {header:1, defval:""});
+               
+               if(json.length < 2) { 
+                 finishProgress(()=>showMessage("❌ 檔案為空或格式錯誤", "error")); 
+                 return; 
+               }
+
+               // 取得標題列 (第一列)
+               const headerRow = json[0].map(h => String(h).trim());
+               
+               // 檢查是否包含所有必要欄位
+               const missingHeaders = requiredHeaders.filter(h => !headerRow.includes(h));
+               if (missingHeaders.length > 0) {
+                 finishProgress(()=>showMessage(`❌ 缺少欄位：${missingHeaders.join(', ')}`, "error", 5));
+                 return;
+               }
+
+               // 找出各欄位的索引
+               const colIndices = requiredHeaders.map(h => headerRow.indexOf(h));
+
+               // 提取資料 (從第二列開始)
+               const listData = [];
+               for(let i=1; i<json.length; i++) {
+                 const row = json[i];
+                 // 依序抓取：[班級, 座號, 身分證..., 姓名, 學號]
+                 const extractedRow = colIndices.map(idx => row[idx] || "");
+                 // 若整列都是空值則跳過
+                 if (extractedRow.every(c => c === "")) continue;
+                 listData.push(extractedRow);
+               }
+
+               if(listData.length === 0) {
+                 finishProgress(()=>showMessage("❌ 沒有有效的資料列", "error"));
+                 return;
+               }
+
+               showProgress('匯入資料庫');
+               callApi(apiAction, {listData}).then(res => {
+                  finishProgress(() => {
+                    if (res && res.success) {
+                      showMessage("✅ 匯入成功", "success");
+                    } else {
+                      showMessage("❌ 匯入失敗：" + (res.message || "未知原因"), "error");
+                    }
+                  });
+               });
+
+             } catch (err) {
+               console.error(err);
+               finishProgress(()=>showMessage("❌ 解析 Excel 發生錯誤", "error"));
+             }
            };
            reader.readAsArrayBuffer(file);
          };
