@@ -4,10 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>鳳甲國中新生照片管理系統 (GitHub版)</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- 引入 Font Awesome 圖示 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   
   <style>
+    /* ----- 全域樣式 ----- */
     body {
       font-family: Arial, sans-serif;
       background: #f7f7f7;
@@ -16,7 +17,8 @@
       overflow-x: auto;
       min-width: 1600px;
     }
-    /* 固定寬度 + 置中 */
+    
+    /* ----- 主容器 ----- */
     .main-container {
       width: 1300px;
       margin: 0 auto;
@@ -26,7 +28,8 @@
       padding: 20px;
       position: relative;
     }
-    h1 { font-size: 60px; text-align: center; margin-bottom: 20px; }
+    
+    /* ----- 標題 ----- */
     .main-title {
       font-size: 65px;
       font-weight: 900;
@@ -38,6 +41,8 @@
       margin-bottom: 30px;
       letter-spacing: 2px;
     }
+
+    /* ----- 表單區塊 ----- */
     .form-row { display: flex; justify-content: space-between; }
     .form-box {
       background: linear-gradient(to bottom right, #e0f7fa, #fffde7);
@@ -50,6 +55,8 @@
       transition: all 0.3s ease;
     }
     .left-form { width: 100%; max-width: 1500px; margin: 0 auto; }
+    
+    /* ----- 輸入欄位群組 ----- */
     .input-group {
       display: flex; align-items: center; gap: 10px;
       justify-content: flex-start; padding-left: 100px;
@@ -62,6 +69,8 @@
       width: 430px; font-size: 26px; padding: 5px;
       border: 1px solid #64b5f6; border-radius: 5px;
     }
+
+    /* ----- 按鈕群組 ----- */
     .button-group {
       display: flex; flex-wrap: wrap; gap: 12px;
       justify-content: center; margin-top: 20px;
@@ -76,6 +85,7 @@
     .btn:hover { transform: scale(1.05); }
     .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
     
+    /* 按鈕顏色 */
     .btn-green { background: linear-gradient(to right, #4CAF50, #66BB6A); }
     .btn-red { background: linear-gradient(to right, #F44336, #EF5350); }
     .btn-blue { background: linear-gradient(to right, #2196F3, #42A5F5); }
@@ -86,9 +96,12 @@
     .btn-purple { background: linear-gradient(to right, #8e24aa, #ba68c8); color: white; }
     .btn-cyan { background: linear-gradient(to right, #00bcd4, #4dd0e1); color: white; }
 
+    /* ----- 結果顯示區 ----- */
     .bottom-result {
       width: 100%; display: flex; justify-content: center; margin-top: 30px;
     }
+
+    /* ----- 訊息提示 ----- */
     .msg {
       font-size: 26px; color: white; padding: 12px 20px;
       border-radius: 6px; position: fixed;
@@ -101,18 +114,19 @@
     .msg-info { background: #1976d2; }
     .msg-progress { background: #ec407a; }
 
-    /* 表格樣式 */
+    /* ----- 表格樣式 ----- */
     table { width: 100%; border-collapse: collapse; font-size: 18px; text-align: center; background-color: #e3f2fd; border: 2px solid #90caf9; }
     thead { background-color: #1976d2; color: white; font-size: 20px; }
     tbody tr:nth-child(even) { background-color: #f1f8ff; }
     tbody tr:nth-child(odd) { background-color: #e3f2fd; }
     th, td { padding: 10px; border: 1px solid #90caf9; }
 
+    /* 表格內按鈕 */
     .modify-btn { background-color: #fdd835; color: black; border: none; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-weight: bold; }
     .delete-btn { background-color: #e53935; color: white; border: none; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-weight: bold; }
     .cancel-btn { background-color: #f48fb1; color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 18px; }
 
-    /* 統計盒子 */
+    /* ----- 統計盒子 (右上角) ----- */
     .stats-box {
       position: absolute; top: 220px; right: 280px; width: 340px;
       background: linear-gradient(to bottom right, #fff9c4, #fffde7);
@@ -132,7 +146,7 @@
     .stats-box li:nth-child(even) { background-color: #fff8e1; }
     .stats-box li:nth-child(odd) { background-color: #fffde7; }
 
-    /* 進階設定 */
+    /* ----- 進階設定區 ----- */
     #advanced-settings {
       max-width: 800px; margin: 30px auto; padding: 20px;
       background: #fbe9f7; border-radius: 12px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -143,15 +157,29 @@
       display: flex; align-items: center; justify-content: center; white-space: nowrap;
     }
 
+    /* ----- Modal (通用遮罩) ----- */
     .modal-mask {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.2); z-index: 10001; display: none;
+      background: rgba(0,0,0,0.4); z-index: 10001; display: none;
     }
     .modal-dialog {
       position: absolute; top: 50%; left: 50%;
-      transform: translate(-50%, -50%); background: #fff8f2;
-      border-radius: 16px; box-shadow: 0 8px 36px #ff856710;
+      transform: translate(-50%, -50%); background: #fff;
+      border-radius: 16px; box-shadow: 0 8px 36px rgba(0,0,0,0.2);
       padding: 28px 32px; min-width: 270px; text-align: center;
+    }
+    
+    /* ----- 貼上匯入 Modal 特別樣式 ----- */
+    #paste-modal-dialog {
+      width: 800px; max-width: 90%;
+      border: 3px solid #2196f3;
+    }
+    #paste-textarea {
+      width: 100%; height: 350px; 
+      font-size: 16px; padding: 10px; border: 1px solid #ccc; border-radius: 8px;
+      margin-top: 10px; margin-bottom: 20px; font-family: monospace;
+      resize: vertical;
+      white-space: pre; overflow-x: auto;
     }
 
     @media screen and (max-width: 1700px) {
@@ -169,8 +197,7 @@
       try {
         const payload = { action: action, data: data };
         
-        // ⚠️ 重要：使用 POST 且不指定 Content-Type 為 application/json
-        // 這樣瀏覽器會以 text/plain 發送，避免觸發 GAS 不支援的 CORS Preflight (OPTIONS)
+        // ⚠️ 使用 POST 發送
         const response = await fetch(GAS_URL, {
           method: 'POST',
           body: JSON.stringify(payload) 
@@ -178,7 +205,6 @@
         
         const json = await response.json();
         
-        // 處理 GAS 回傳的結構
         if (json.status === 'success') {
           return json.data;
         } else {
@@ -197,6 +223,7 @@
     <h1 class="main-title">鳳甲國中新生照片管理系統</h1>
     <div class="form-row">
       <div class="form-box left-form">
+        <!-- 查詢條件區 -->
         <div class="input-group">
           <label for="grade">年級</label>
           <select id="grade">
@@ -241,12 +268,13 @@
           </select>
         </div>
         
-        <!-- 右側統計資料 -->
+        <!-- 右側統計資料 (漂浮) -->
         <div class="stats-box" id="summary-content">
           <h3>📸 <span>照片處理統計表</span></h3>
           <div>⏳ 載入中...</div>
         </div>
 
+        <!-- 功能按鈕區 -->
         <div class="button-group">
           <button class="btn btn-green" onclick="handleQuery()">查詢</button>
           <button class="btn btn-red" onclick="handleClear()">清除</button>
@@ -268,18 +296,17 @@
     <!-- 班級統計表顯示區 -->
     <div class="bottom-result" id="stats-container"></div>
 
-    <!-- 進階設定區 -->
+    <!-- 進階設定區 (預設隱藏) -->
     <div id="advanced-settings" style="display:none; text-align:center;">
       <h2 style="font-size:36px; color:#6a1b9a; margin-bottom:20px; text-shadow:1px 1px 3px rgba(0,0,0,0.2);">
         ⚙️ 進階設定選單
       </h2>
       <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:16px; margin-bottom:25px; background:#f3e5f5; padding:20px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-        <!-- ✅ 更新原始工作表連結 -->
         <button class="btn btn-purple advanced-btn" onclick="window.open('https://docs.google.com/spreadsheets/d/1-iIXTbEeIqzaMnWQowqyvOquqZQLJpnRCUST-mVZ1Tw/edit?gid=1164346300#gid=1164346300')">📄原始工作表</button>
         <button class="btn btn-green advanced-btn" onclick="clearPhotoData()">🧹清空資料</button>
-        <button class="btn btn-red advanced-btn" onclick="importClassToList()">🧒匯入新生名單</button>
-        <button class="btn btn-blue advanced-btn" onclick="importTeacherList()">👨‍🏫匯入導師名單</button>
-        <!-- ✅ 更新資料夾連結 -->
+        <!-- 匯入按鈕改為呼叫貼上視窗 -->
+        <button class="btn btn-red advanced-btn" onclick="openImportModal('student')">🧒匯入新生名單</button>
+        <button class="btn btn-blue advanced-btn" onclick="openImportModal('teacher')">👨‍🏫匯入導師名單</button>
         <button class="btn btn-orange advanced-btn" onclick="openPhotoFolder()">📂大頭照資料夾</button>
       </div>
       <button class="cancel-btn" onclick="hideAdvancedSettings()">❌ 離開設定</button>
@@ -289,16 +316,33 @@
   <!-- 漂浮提示訊息 -->
   <div id="floating-msg" class="msg"></div>
 
-  <!-- 匯入檔案用 Input -->
-  <input type="file" id="excel-upload" accept=".xlsx" style="display:none" />
-  <input type="file" id="teacher-excel-upload" accept=".xlsx" style="display:none" />
-
-  <!-- 通用 Modal -->
+  <!-- 通用確認 Modal (Yes/No) -->
   <div id="modal-mask" class="modal-mask">
     <div id="modal-dialog" class="modal-dialog">
       <div id="modal-message" style="font-size:28px; margin-bottom:30px; color:#a30000;"></div>
       <button id="modal-ok-btn" style="font-size:24px; background:#43a047; color:#fff; border:none; border-radius:10px; padding:8px 28px; margin-right:24px; cursor:pointer;">確定</button>
       <button id="modal-cancel-btn" style="font-size:24px; background:#bdbdbd; color:#333; border:none; border-radius:10px; padding:8px 28px; cursor:pointer;">取消</button>
+    </div>
+  </div>
+
+  <!-- 🆕 貼上匯入 Modal (Textarea) -->
+  <div id="paste-modal" class="modal-mask">
+    <div id="paste-modal-dialog" class="modal-dialog">
+      <h2 id="paste-modal-title" style="color:#1976d2; font-size:32px; font-weight:bold;">匯入資料</h2>
+      <div style="text-align:left; color:#555; margin-bottom:10px; font-size:18px; line-height: 1.5; background: #e3f2fd; padding: 10px; border-radius: 8px;">
+        <strong>📋 使用說明：</strong><br>
+        1. 請在 Excel 中選取資料範圍 (必須包含標題列)，按下 Ctrl+C 複製。<br>
+        2. 在下方框框內按下 Ctrl+V 貼上。<br>
+        3. 系統將自動識別必要欄位：<br>
+        <span id="paste-keywords" style="background:#fff; padding:2px 8px; border-radius:4px; color:#d32f2f; font-weight:bold; border: 1px solid #ffcdd2;"></span>
+      </div>
+      <textarea id="paste-textarea" placeholder="請在此貼上 Excel 資料..."></textarea>
+      <div style="margin-top: 15px;">
+        <button onclick="submitPasteImport()" style="font-size:24px; background:#43a047; color:#fff; border:none; border-radius:10px; padding:8px 28px; margin-right:24px; cursor:pointer;">
+          <i class="fas fa-file-import"></i> 確定匯入
+        </button>
+        <button onclick="closeImportModal()" style="font-size:24px; background:#bdbdbd; color:#333; border:none; border-radius:10px; padding:8px 28px; cursor:pointer;">取消</button>
+      </div>
     </div>
   </div>
 
@@ -336,6 +380,7 @@
       }, 500);
     }
 
+    // 通用確認對話框
     function showConfirmModal(msg, onOk) {
       const mask = document.getElementById('modal-mask');
       document.getElementById('modal-message').innerText = msg;
@@ -738,7 +783,6 @@
       document.getElementById('advanced-settings').style.display = 'none';
     }
     
-    // ✅ 更新：開啟資料夾
     function openPhotoFolder() {
       window.open('https://drive.google.com/drive/folders/1PXYSIsQK61MxsoyZWoa8zwvhlw2oMgZu?usp=drive_link', '_blank');
     }
@@ -752,95 +796,99 @@
       });
     }
 
-    // ✅ 新增：更嚴謹的 Excel 解析邏輯
-    function handleImport(type) {
-      const isTeacher = type === 'teacher';
-      const msg = isTeacher ? "重新匯入導師名單？" : "重新匯入新生名單？";
-      const apiAction = isTeacher ? 'importTeacher' : 'importList';
-      const inputId = isTeacher ? 'teacher-excel-upload' : 'excel-upload';
+    // ------------------- 🆕 貼上匯入邏輯 -------------------
 
-      // 定義需要的欄位名稱
-      const requiredHeaders = isTeacher 
-        ? ['班級', '導師'] 
-        : ['班級', '座號', '身分證後四碼', '姓名', '學號'];
+    let currentImportType = ''; // 'student' or 'teacher'
 
-      showConfirmModal(`⚠️ ${msg}`, () => {
-         const input = document.getElementById(inputId);
-         input.value = '';
-         input.onchange = (e) => {
-           const file = e.target.files[0];
-           if(!file) return;
-           
-           showProgress('讀取 Excel');
-           const reader = new FileReader();
-           reader.onload = (evt) => {
-             try {
-               const data = new Uint8Array(evt.target.result);
-               const workbook = XLSX.read(data, {type: 'array'});
-               const ws = workbook.Sheets[workbook.SheetNames[0]];
-               
-               // 轉為 JSON，首列為標題
-               const json = XLSX.utils.sheet_to_json(ws, {header:1, defval:""});
-               
-               if(json.length < 2) { 
-                 finishProgress(()=>showMessage("❌ 檔案為空或格式錯誤", "error")); 
-                 return; 
-               }
+    function openImportModal(type) {
+      currentImportType = type;
+      const title = type === 'student' ? '匯入新生名單' : '匯入導師名單';
+      // 關鍵字
+      const keywords = type === 'student' 
+        ? '班級、座號、身分證後四碼、姓名、學號' 
+        : '班級、導師';
+        
+      document.getElementById('paste-modal-title').innerText = title;
+      document.getElementById('paste-keywords').innerText = keywords;
+      document.getElementById('paste-textarea').value = ''; // 清空
+      document.getElementById('paste-modal').style.display = 'block';
+    }
 
-               // 取得標題列 (第一列)
-               const headerRow = json[0].map(h => String(h).trim());
-               
-               // 檢查是否包含所有必要欄位
-               const missingHeaders = requiredHeaders.filter(h => !headerRow.includes(h));
-               if (missingHeaders.length > 0) {
-                 finishProgress(()=>showMessage(`❌ 缺少欄位：${missingHeaders.join(', ')}`, "error", 5));
-                 return;
-               }
+    function closeImportModal() {
+      document.getElementById('paste-modal').style.display = 'none';
+    }
 
-               // 找出各欄位的索引
-               const colIndices = requiredHeaders.map(h => headerRow.indexOf(h));
+    function submitPasteImport() {
+      const text = document.getElementById('paste-textarea').value.trim();
+      if (!text) {
+        showMessage('❌ 內容為空！', 'error');
+        return;
+      }
 
-               // 提取資料 (從第二列開始)
-               const listData = [];
-               for(let i=1; i<json.length; i++) {
-                 const row = json[i];
-                 // 依序抓取：[班級, 座號, 身分證..., 姓名, 學號]
-                 const extractedRow = colIndices.map(idx => row[idx] || "");
-                 // 若整列都是空值則跳過
-                 if (extractedRow.every(c => c === "")) continue;
-                 listData.push(extractedRow);
-               }
+      // 解析 Excel 複製的內容 (Tab 分隔)
+      const rows = text.split(/\r?\n/);
+      if (rows.length < 2) {
+        showMessage('❌ 資料行數不足 (至少需包含標題與一列資料)', 'error', 4);
+        return;
+      }
 
-               if(listData.length === 0) {
-                 finishProgress(()=>showMessage("❌ 沒有有效的資料列", "error"));
-                 return;
-               }
+      // 解析標題列 (第一行)
+      const headerLine = rows[0].split('\t').map(h => h.trim());
+      
+      // 定義必要欄位
+      const requiredHeaders = currentImportType === 'student'
+        ? ['班級', '座號', '身分證後四碼', '姓名', '學號']
+        : ['班級', '導師'];
 
-               showProgress('匯入資料庫');
-               callApi(apiAction, {listData}).then(res => {
-                  finishProgress(() => {
-                    if (res && res.success) {
-                      showMessage("✅ 匯入成功", "success");
-                    } else {
-                      showMessage("❌ 匯入失敗：" + (res.message || "未知原因"), "error");
-                    }
-                  });
-               });
+      // 檢查欄位是否存在
+      const missing = requiredHeaders.filter(h => !headerLine.includes(h));
+      if (missing.length > 0) {
+        showMessage(`❌ 缺少欄位：${missing.join(', ')}`, 'error', 5);
+        return;
+      }
 
-             } catch (err) {
-               console.error(err);
-               finishProgress(()=>showMessage("❌ 解析 Excel 發生錯誤", "error"));
-             }
-           };
-           reader.readAsArrayBuffer(file);
-         };
-         input.click();
+      // 建立索引對應 Map (找出每個標題在第幾欄)
+      const colIndices = requiredHeaders.map(h => headerLine.indexOf(h));
+
+      // 解析資料列 (從第二行開始)
+      const listData = [];
+      for (let i = 1; i < rows.length; i++) {
+        const cols = rows[i].split('\t');
+        
+        // 簡單過濾空行
+        if (cols.length < colIndices.length && cols.every(c => !c.trim())) continue;
+        
+        // 依照需要的順序提取資料 (例如使用者把姓名放在最前面，這裡會自動抓回來正確位置)
+        const rowData = colIndices.map(idx => (cols[idx] || '').trim());
+        
+        // 再次檢查是否有空值資料列 (全空則跳過)
+        if (rowData.every(c => c === '')) continue;
+        
+        listData.push(rowData);
+      }
+
+      if (listData.length === 0) {
+        showMessage('❌ 沒有有效的資料列！', 'error');
+        return;
+      }
+
+      // 送出資料到後端
+      showProgress('匯入資料庫');
+      const apiAction = currentImportType === 'student' ? 'importList' : 'importTeacher';
+
+      callApi(apiAction, { listData }).then(res => {
+        finishProgress(() => {
+          if (res && res.success) {
+            showMessage('✅ 匯入成功！', 'success');
+            closeImportModal();
+          } else {
+            showMessage('❌ 匯入失敗：' + (res.message || '未知原因'), 'error');
+          }
+        });
       });
     }
-    
-    function importClassToList() { handleImport('student'); }
-    function importTeacherList() { handleImport('teacher'); }
 
+    // 初始化下拉選單
     function initSelects() {
       const cls = document.getElementById('class');
       const seat = document.getElementById('seat');
