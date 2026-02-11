@@ -56,18 +56,43 @@
     }
     .left-form { width: 100%; max-width: 1500px; margin: 0 auto; }
     
-    /* ----- 輸入欄位群組 ----- */
+    /* ----- 輸入欄位群組 (修正排版) ----- */
     .input-group {
-      display: flex; align-items: center; gap: 10px;
-      justify-content: flex-start; padding-left: 100px;
+      display: flex; 
+      align-items: center; 
+      gap: 15px; /* 增加間距 */
+      justify-content: flex-start; 
+      padding-left: 100px;
+      margin-bottom: 15px; /* 增加垂直間距 */
     }
     .input-group:first-of-type { margin-top: 20px; }
+    
     .input-group label {
-      width: 120px; text-align: right; font-size: 26px; white-space: nowrap;
+      width: 130px; /* 稍微加寬標籤 */
+      text-align: right; 
+      font-size: 26px; 
+      white-space: nowrap;
+      font-weight: bold;
+      color: #333;
     }
+    
+    /* ✅ 修正重點：統一輸入框樣式 */
     .input-group select, .input-group input {
-      width: 430px; font-size: 26px; padding: 5px;
-      border: 1px solid #64b5f6; border-radius: 5px;
+      width: 430px; 
+      height: 50px;           /* ✅ 強制固定高度 */
+      font-size: 24px; 
+      padding: 5px 12px;      /* ✅ 統一內距 */
+      border: 2px solid #90caf9; /* 稍微加粗邊框 */
+      border-radius: 8px;
+      box-sizing: border-box; /* ✅ 關鍵：讓內距與邊框計算在寬度內 */
+      background-color: #fff;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .input-group select:focus, .input-group input:focus {
+      border-color: #2196f3;
+      box-shadow: 0 0 8px rgba(33, 150, 243, 0.3);
     }
 
     /* ----- 按鈕群組 ----- */
@@ -100,8 +125,8 @@
     .bottom-result {
       width: 100%; 
       display: flex; 
-      flex-direction: column; /* ✅ 改為垂直排列，解決分頁按鈕跑版問題 */
-      align-items: center;    /* ✅ 水平置中 */
+      flex-direction: column; /* 垂直排列 */
+      align-items: center;    /* 水平置中 */
       margin-top: 30px;
     }
 
