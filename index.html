@@ -166,7 +166,10 @@
 
     /* ----- 統計盒子 (右上角) ----- */
     .stats-box {
-      position: absolute; top: 220px; right: 280px; width: 340px;
+      position: absolute; 
+      top: 290px; /* ✅ 從 220px 改為 290px，往下移動避免超出或遮擋容器 */
+      right: 280px; 
+      width: 340px;
       background: linear-gradient(to bottom right, #fff9c4, #fffde7);
       border-left: 10px solid #fbc02d; border-radius: 20px;
       box-shadow: 4px 4px 18px rgba(0, 0, 0, 0.18);
@@ -717,7 +720,7 @@
             if(res) {
               showMessage('✅ 已刪除', 'success');
               row.remove();
-              updateFolderStatus(); // 🆕 刪除後立即更新資料夾狀態
+              updateFolderStatus(); // 刪除後立即更新資料夾狀態
             } else {
               showMessage('❌ 刪除失敗', 'error');
             }
@@ -853,7 +856,7 @@
          callApi('clearData').then(() => {
            finishProgress(() => {
              showMessage('✅ 已清空', 'success');
-             updateFolderStatus(); // 🆕 清空後立即更新資料夾狀態
+             updateFolderStatus(); // 清空後立即更新資料夾狀態
            });
          });
       });
@@ -921,7 +924,7 @@
         // 簡單過濾空行
         if (cols.length < colIndices.length && cols.every(c => !c.trim())) continue;
         
-        // 依照需要的順序提取資料 (例如使用者把姓名放在最前面，這裡會自動抓回來正確位置)
+        // 依照需要的順序提取資料
         const rowData = colIndices.map(idx => (cols[idx] || '').trim());
         
         // 再次檢查是否有空值資料列 (全空則跳過)
