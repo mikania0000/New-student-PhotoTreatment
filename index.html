@@ -6,6 +6,7 @@
   <title>鳳甲國中新生照片管理系統 (GitHub版)</title>
   <!-- 引入 Font Awesome 圖示 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   
   <style>
     /* ----- 全域樣式 ----- */
@@ -213,18 +214,18 @@
     /* ----- 貼上匯入 Modal 特別樣式 ----- */
     #paste-modal-dialog {
       width: 800px; max-width: 90%;
-      max-height: 85vh;            /* ✅ 新增：最大高度限制，防止超出螢幕 */
-      display: flex;               /* ✅ 新增：使用 Flexbox 佈局 */
-      flex-direction: column;      /* ✅ 新增：垂直排列 */
+      max-height: 85vh;            
+      display: flex;               
+      flex-direction: column;      
       border: 3px solid #2196f3;
     }
     #paste-textarea {
       width: 100%; 
-      flex: 1;                     /* ✅ 新增：自動填滿剩餘高度 */
-      min-height: 150px;           /* ✅ 新增：設定最小高度 */
+      flex: 1;                     
+      min-height: 150px;           
       font-size: 16px; padding: 10px; border: 1px solid #ccc; border-radius: 8px;
       margin-top: 10px; margin-bottom: 20px; font-family: monospace;
-      resize: none;                /* ✅ 修改：由 Flex 自動分配高度，禁止手動拉放 */
+      resize: none;                
       white-space: pre; overflow-x: auto;
     }
 
@@ -243,7 +244,6 @@
       try {
         const payload = { action: action, data: data };
         
-        // ⚠️ 使用 POST 發送
         const response = await fetch(GAS_URL, {
           method: 'POST',
           body: JSON.stringify(payload) 
@@ -268,7 +268,7 @@
   <div class="main-container">
     <h1 class="main-title">鳳甲國中新生照片管理系統</h1>
     
-    <!-- 🆕 資料夾狀態指示燈 -->
+    <!-- 資料夾狀態指示燈 -->
     <div id="folder-status">
       📁 照片資料夾狀態：<span id="folder-light" style="background: #e0e0e0; padding: 4px 12px; border-radius: 20px;">⚪ 檢查中...</span>
     </div>
@@ -334,7 +334,7 @@
           <button class="btn btn-brown" onclick="showStatsTable()">
             <i class="fas fa-chart-bar"></i> 班級統計表
           </button>
-          <button class="btn btn-yellow" onclick="window.open('https://mikania0000.github.io/New-student-PhotoRemoveBack/')">去背網頁</button>
+          <button class="btn btn-yellow" onclick="window.open('https://script.google.com/a/macros/fjm.kh.edu.tw/s/AKfycbxnwWvYKb7GJEJMxwkV29JhGsOJ2Lwx45TurUtWbhgk53MWk0uL-vPCXzI3dZM6Fvk1/exec')">去背網頁</button>
           <button class="btn btn-orange" onclick="window.open('https://mikania0000.github.io/New-student-PhotoUpload/')">照片上傳網頁</button>
           <button class="btn btn-pink" onclick="window.open('https://mikania0000.github.io/New-student-ParentQuery/')">編班查詢網頁</button>
           <button class="btn btn-purple" onclick="showAdvancedSettings()">進階設定</button>
@@ -376,22 +376,33 @@
     </div>
   </div>
 
-  <!-- 🆕 貼上匯入 Modal (Textarea) -->
+  <!-- 🆕 貼上 / 檔案匯入 Modal -->
   <div id="paste-modal" class="modal-mask">
     <div id="paste-modal-dialog" class="modal-dialog">
-      <h2 id="paste-modal-title" style="color:#1976d2; font-size:32px; font-weight:bold;">匯入資料</h2>
-      <div style="text-align:left; color:#555; margin-bottom:10px; font-size:18px; line-height: 1.5; background: #e3f2fd; padding: 10px; border-radius: 8px; flex-shrink: 0;">
+      <h2 id="paste-modal-title" style="color:#1976d2; font-size:32px; font-weight:bold; margin-top: 0;">匯入資料</h2>
+      
+      <div style="text-align:left; color:#555; margin-bottom:15px; font-size:18px; line-height: 1.5; background: #e3f2fd; padding: 12px; border-radius: 8px; flex-shrink: 0;">
         <strong>📋 使用說明：</strong><br>
-        1. 請在 Excel 中選取資料範圍 (必須包含標題列)，按下 Ctrl+C 複製。<br>
-        2. 在下方框框內按下 Ctrl+V 貼上。<br>
-        3. 系統將自動識別必要欄位：<br>
+        您可以選擇 <strong style="color:#1976d2;">直接選擇 Excel 檔案</strong>，或是 <strong>複製 Excel 內容並貼上</strong>：<br>
+        1. 系統將自動識別必要欄位：<br>
         <span id="paste-keywords" style="background:#fff; padding:2px 8px; border-radius:4px; color:#d32f2f; font-weight:bold; border: 1px solid #ffcdd2;"></span><br>
         <strong style="color: #d32f2f;">⚠️ 注意：匯入時將會自動清空原有的資料表內容！</strong>
       </div>
-      <textarea id="paste-textarea" placeholder="請在此貼上 Excel 資料..."></textarea>
+
+      <!-- 🆕 檔案選擇區塊 -->
+      <div style="text-align: left; margin-bottom: 10px; flex-shrink: 0; display: flex; align-items: center; gap: 10px;">
+        <input type="file" id="excel-file-input" accept=".xlsx, .xls, .csv" style="display: none;" onchange="handleFileSelect(event)">
+        <button onclick="document.getElementById('excel-file-input').click()" style="font-size:20px; background:#1976d2; color:white; border:none; border-radius:8px; padding:8px 20px; cursor:pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+          <i class="fas fa-folder-open"></i> 選擇 Excel 檔案
+        </button>
+        <span style="font-size: 16px; color: #666;">或在下方文字框貼上內容：</span>
+      </div>
+
+      <textarea id="paste-textarea" placeholder="請在此貼上 Excel 資料... 或使用上方按鈕選擇檔案"></textarea>
+      
       <div style="margin-top: 15px; flex-shrink: 0;">
         <button onclick="submitPasteImport()" style="font-size:24px; background:#43a047; color:#fff; border:none; border-radius:10px; padding:8px 28px; margin-right:24px; cursor:pointer;">
-          <i class="fas fa-file-import"></i> 確定匯入
+          <i class="fas fa-file-import"></i> 確定匯入 (貼上文字)
         </button>
         <button onclick="closeImportModal()" style="font-size:24px; background:#bdbdbd; color:#333; border:none; border-radius:10px; padding:8px 28px; cursor:pointer;">取消</button>
       </div>
@@ -713,7 +724,6 @@
       }
     }
 
-    // ✅ 刪除列後觸發更新狀態燈
     function deleteRow(btn) {
       const row = btn.closest('tr');
       const uuid = row.dataset.uuid;
@@ -828,7 +838,7 @@
       }).catch(e => console.log("統計更新失敗(可能網路問題)"));
     }
 
-    // 🆕 檢查資料夾狀態與檔案數量
+    // 檢查資料夾狀態與檔案數量
     function updateFolderStatus() {
       callApi('checkFolderStatus').then(res => {
         const light = document.getElementById('folder-light');
@@ -855,20 +865,19 @@
       window.open('https://drive.google.com/drive/u/0/folders/1PXYSIsQK61MxsoyZWoa8zwvhlw2oMgZu', '_blank');
     }
     
-    // ✅ 清空資料後觸發更新狀態燈
     function clearPhotoData() {
       showConfirmModal("⚠️ 確定清空所有大頭照資料？", () => {
          showProgress('清空中');
          callApi('clearData').then(() => {
            finishProgress(() => {
              showMessage('✅ 已清空', 'success');
-             updateFolderStatus(); // 清空後立即更新資料夾狀態
+             updateFolderStatus(); 
            });
          });
       });
     }
 
-    // ------------------- 🆕 貼上匯入邏輯 -------------------
+    // ------------------- 🆕 貼上 / 檔案匯入邏輯 -------------------
 
     let currentImportType = ''; // 'student' or 'teacher'
 
@@ -883,6 +892,7 @@
       document.getElementById('paste-modal-title').innerText = title;
       document.getElementById('paste-keywords').innerText = keywords;
       document.getElementById('paste-textarea').value = ''; // 清空
+      document.getElementById('excel-file-input').value = ''; // 清空選擇的檔案
       document.getElementById('paste-modal').style.display = 'block';
     }
 
@@ -890,22 +900,57 @@
       document.getElementById('paste-modal').style.display = 'none';
     }
 
+    // 🆕 處理選擇的 Excel 檔案
+    function handleFileSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      showProgress('讀取 Excel 檔案');
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, {type: 'array'});
+          const ws = workbook.Sheets[workbook.SheetNames[0]];
+          
+          // 轉為 2D 陣列
+          const json = XLSX.utils.sheet_to_json(ws, {header: 1, defval: ""});
+          
+          event.target.value = ''; // 允許重新選擇相同檔案
+          
+          processAndImport2DArray(json);
+        } catch (err) {
+          console.error(err);
+          finishProgress(() => showMessage("❌ 解析 Excel 失敗！請確定檔案格式正確。", "error", 4));
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    // 處理貼上的文字
     function submitPasteImport() {
       const text = document.getElementById('paste-textarea').value.trim();
       if (!text) {
-        showMessage('❌ 內容為空！', 'error');
+        showMessage('❌ 內容為空！請貼上資料或選擇檔案。', 'error');
         return;
       }
 
-      // 解析 Excel 複製的內容 (Tab 分隔)
+      // 將貼上文字轉為 2D 陣列 (Tab 分隔)
       const rows = text.split(/\r?\n/);
-      if (rows.length < 2) {
+      const data2D = rows.map(row => row.split('\t').map(cell => cell.trim()));
+      
+      processAndImport2DArray(data2D);
+    }
+
+    // 🆕 通用處理匯入二維陣列的核心邏輯 (無論來源是貼上或檔案)
+    function processAndImport2DArray(data2D) {
+      if (data2D.length < 2) {
         showMessage('❌ 資料行數不足 (至少需包含標題與一列資料)', 'error', 4);
         return;
       }
 
       // 解析標題列 (第一行)
-      const headerLine = rows[0].split('\t').map(h => h.trim());
+      const headerLine = data2D[0].map(h => String(h).trim());
       
       // 定義必要欄位
       const requiredHeaders = currentImportType === 'student'
@@ -924,14 +969,14 @@
 
       // 解析資料列 (從第二行開始)
       const listData = [];
-      for (let i = 1; i < rows.length; i++) {
-        const cols = rows[i].split('\t');
+      for (let i = 1; i < data2D.length; i++) {
+        const row = data2D[i];
         
         // 簡單過濾空行
-        if (cols.length < colIndices.length && cols.every(c => !c.trim())) continue;
+        if (row.length === 0 || row.every(c => String(c).trim() === '')) continue;
         
         // 依照需要的順序提取資料
-        const rowData = colIndices.map(idx => (cols[idx] || '').trim());
+        const rowData = colIndices.map(idx => (row[idx] || '').toString().trim());
         
         // 再次檢查是否有空值資料列 (全空則跳過)
         if (rowData.every(c => c === '')) continue;
