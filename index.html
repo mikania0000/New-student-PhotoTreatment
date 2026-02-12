@@ -131,7 +131,7 @@
     .btn-purple { background: linear-gradient(to right, #8e24aa, #ba68c8); color: white; }
     .btn-cyan { background: linear-gradient(to right, #00bcd4, #4dd0e1); color: white; }
 
-    /* ----- 結果顯示區 (修正分頁按鈕跑版) ----- */
+    /* ----- 結果顯示區 ----- */
     .bottom-result {
       width: 100%; 
       display: flex; 
@@ -379,7 +379,7 @@
     </div>
   </div>
 
-  <!-- 🆕 貼上 / 檔案匯入 Modal -->
+  <!-- 貼上 / 檔案匯入 Modal -->
   <div id="paste-modal" class="modal-mask">
     <div id="paste-modal-dialog" class="modal-dialog">
       <h2 id="paste-modal-title" style="color:#1976d2; font-size:32px; font-weight:bold; margin-top: 0;">匯入資料</h2>
@@ -422,46 +422,58 @@
       setTimeout(() => { msg.style.display = 'none'; }, durationInSeconds * 1000);
     }
 
-    // ✅ 全新升級：帶有動畫、Spinner 與遮罩的進度條
+    // ✅ 全新升級：防卡死、動態文字更新進度條
     let progressInterval;
+    let progressPercent = 0;
+
     function showProgress(text = '處理中') {
       const mask = document.getElementById('progress-mask');
-      if (mask) mask.style.display = 'block';
-      
       const msg = document.getElementById('floating-msg');
-      let percent = 1;
-      msg.className = `msg msg-progress`;
-      
-      // 插入動態旋轉圖示與平滑進度條
-      msg.innerHTML = `
-        <div style="display:flex; flex-direction:column; align-items:center; gap:12px; min-width: 260px; padding: 10px;">
-          <i class="fas fa-circle-notch fa-spin" style="font-size: 42px; margin-bottom: 5px;"></i>
-          <div style="font-size: 24px; font-weight: bold;">${text}... <span id="progress-percent">${percent}</span>%</div>
-          <div style="width: 100%; background: rgba(255,255,255,0.4); border-radius: 8px; height: 14px; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);">
-            <div id="progress-bar-fill" style="width: ${percent}%; background: #fff; height: 100%; border-radius: 8px; transition: width 0.4s ease-out;"></div>
-          </div>
-          <div style="font-size: 15px; margin-top: 5px; opacity: 0.9;">資料傳輸中，請勿關閉網頁</div>
-        </div>
-      `;
-      msg.style.display = 'block';
 
-      // 平滑進度計算邏輯
-      progressInterval = setInterval(() => {
-        let remaining = 99 - percent;
-        let increment = Math.max(1, Math.floor(remaining / 8));
+      if (mask.style.display !== 'block') {
+        // 第一次開啟進度條
+        mask.style.display = 'block';
+        msg.className = `msg msg-progress`;
+        progressPercent = 1;
         
-        if (percent >= 90) {
-           increment = Math.random() > 0.5 ? 1 : 0; // 接近尾聲時緩慢增加
+        msg.innerHTML = `
+          <div style="display:flex; flex-direction:column; align-items:center; gap:12px; min-width: 280px; padding: 10px;">
+            <i class="fas fa-circle-notch fa-spin" style="font-size: 42px; margin-bottom: 5px;"></i>
+            <div id="progress-text-display" style="font-size: 24px; font-weight: bold; text-align: center;">
+              ${text}... <span id="progress-percent">${progressPercent}</span>%
+            </div>
+            <div style="width: 100%; background: rgba(255,255,255,0.4); border-radius: 8px; height: 14px; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);">
+              <div id="progress-bar-fill" style="width: ${progressPercent}%; background: #fff; height: 100%; border-radius: 8px; transition: width 0.4s ease-out;"></div>
+            </div>
+            <div style="font-size: 15px; margin-top: 5px; opacity: 0.9;">資料傳輸中，請勿關閉網頁</div>
+          </div>
+        `;
+        msg.style.display = 'block';
+
+        clearInterval(progressInterval);
+        progressInterval = setInterval(() => {
+          let remaining = 99 - progressPercent;
+          let increment = Math.max(1, Math.floor(remaining / 10));
+          
+          if (progressPercent >= 90) {
+             increment = Math.random() > 0.5 ? 1 : 0; 
+          }
+          
+          progressPercent += increment;
+          if (progressPercent > 99) progressPercent = 99;
+          
+          const pctText = document.getElementById('progress-percent');
+          const barFill = document.getElementById('progress-bar-fill');
+          if (pctText) pctText.innerText = Math.floor(progressPercent);
+          if (barFill) barFill.style.width = progressPercent + '%';
+        }, 300);
+      } else {
+        // 若進度條已開啟，僅更新文字，不中斷動畫
+        const display = document.getElementById('progress-text-display');
+        if (display) {
+            display.innerHTML = `${text}... <span id="progress-percent">${Math.floor(progressPercent)}</span>%`;
         }
-        
-        percent += increment;
-        if (percent > 99) percent = 99;
-        
-        const pctText = document.getElementById('progress-percent');
-        const barFill = document.getElementById('progress-bar-fill');
-        if (pctText) pctText.innerText = percent;
-        if (barFill) barFill.style.width = percent + '%';
-      }, 350);
+      }
     }
 
     function finishProgress(callback) {
@@ -477,7 +489,7 @@
         
         const msg = document.getElementById('floating-msg');
         msg.style.display = 'none';
-        msg.innerHTML = ''; // 清除內容，避免影響後續 showMessage
+        msg.innerHTML = ''; // 清除內容
         
         if (callback) callback();
       }, 500); 
@@ -519,7 +531,7 @@
     function handleUnsubmitted() {
       document.getElementById('result-container').innerHTML = '';
       document.getElementById('stats-container').innerHTML = '';
-      showProgress('查詢未上傳');
+      showProgress('查詢未上傳資料中');
       
       callApi('getUnsubmitted')
         .then(data => {
@@ -568,7 +580,7 @@
       document.getElementById('stats-container').innerHTML = '';
       document.getElementById('advanced-settings').style.display = 'none';
 
-      showProgress('查詢中');
+      showProgress('查詢資料中');
 
       callApi('query', filters)
         .then(allData => {
@@ -711,7 +723,7 @@
           newStatus += "：" + reasonInput.value.trim();
         }
 
-        showProgress('更新資料中');
+        showProgress('更新資料庫中');
         callApi('update', {uuid, newPhotoUrl: newPhoto, newStatus: newStatus})
           .then(res => {
             finishProgress(() => {
@@ -770,13 +782,13 @@
       const name = row.children[3].innerText;
       
       showConfirmModal(`⚠️ 確定刪除 ${name} 的資料？`, () => {
-        showProgress('刪除中');
+        showProgress('刪除資料中');
         callApi('delete', {uuid: uuid}).then(res => {
           finishProgress(() => {
             if(res) {
               showMessage('✅ 已刪除', 'success');
               row.remove();
-              updateFolderStatus(); // 刪除後立即更新資料夾狀態
+              updateFolderStatus(); 
             } else {
               showMessage('❌ 刪除失敗', 'error');
             }
@@ -878,7 +890,6 @@
       }).catch(e => console.log("統計更新失敗(可能網路問題)"));
     }
 
-    // 檢查資料夾狀態與檔案數量
     function updateFolderStatus() {
       callApi('checkFolderStatus').then(res => {
         const light = document.getElementById('folder-light');
@@ -917,7 +928,7 @@
       });
     }
 
-    // ------------------- 🆕 貼上 / 檔案匯入邏輯 -------------------
+    // ------------------- 🆕 貼上 / 檔案匯入邏輯 (升級版防卡死) -------------------
 
     let currentImportType = ''; // 'student' or 'teacher'
 
@@ -940,34 +951,42 @@
       document.getElementById('paste-modal').style.display = 'none';
     }
 
-    // 處理選擇的 Excel 檔案
+    // ✅ 處理選擇的 Excel 檔案 (使用 setTimeout 確保 UI 動畫優先)
     function handleFileSelect(event) {
       const file = event.target.files[0];
       if (!file) return;
 
-      showProgress('讀取 Excel 檔案');
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          const data = new Uint8Array(e.target.result);
-          const workbook = XLSX.read(data, {type: 'array'});
-          const ws = workbook.Sheets[workbook.SheetNames[0]];
+      showProgress('讀取 Excel 檔案中');
+      
+      // 給瀏覽器一點時間繪製進度條，再執行吃資源的 FileReader
+      setTimeout(() => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          showProgress('解析 Excel 內容中');
           
-          // 轉為 2D 陣列
-          const json = XLSX.utils.sheet_to_json(ws, {header: 1, defval: ""});
-          
-          event.target.value = ''; // 允許重新選擇相同檔案
-          
-          processAndImport2DArray(json);
-        } catch (err) {
-          console.error(err);
-          finishProgress(() => showMessage("❌ 解析 Excel 失敗！請確定檔案格式正確。", "error", 4));
-        }
-      };
-      reader.readAsArrayBuffer(file);
+          // 再次延遲，確保進度文字更新，並防止 XLSX.read 卡死畫面
+          setTimeout(() => {
+            try {
+              const data = new Uint8Array(e.target.result);
+              const workbook = XLSX.read(data, {type: 'array'});
+              const ws = workbook.Sheets[workbook.SheetNames[0]];
+              
+              // 轉為 2D 陣列
+              const json = XLSX.utils.sheet_to_json(ws, {header: 1, defval: ""});
+              
+              event.target.value = ''; // 允許重新選擇相同檔案
+              processAndImport2DArray(json);
+            } catch (err) {
+              console.error(err);
+              finishProgress(() => showMessage("❌ 解析 Excel 失敗！請確定檔案格式正確。", "error", 4));
+            }
+          }, 100);
+        };
+        reader.readAsArrayBuffer(file);
+      }, 100);
     }
 
-    // 處理貼上的文字
+    // ✅ 處理貼上的文字 (加入 setTimeout)
     function submitPasteImport() {
       const text = document.getElementById('paste-textarea').value.trim();
       if (!text) {
@@ -975,75 +994,86 @@
         return;
       }
 
-      // 將貼上文字轉為 2D 陣列 (Tab 分隔)
-      const rows = text.split(/\r?\n/);
-      const data2D = rows.map(row => row.split('\t').map(cell => cell.trim()));
+      showProgress('解析文字資料中');
       
-      processAndImport2DArray(data2D);
+      setTimeout(() => {
+        // 將貼上文字轉為 2D 陣列 (Tab 分隔)
+        const rows = text.split(/\r?\n/);
+        const data2D = rows.map(row => row.split('\t').map(cell => cell.trim()));
+        
+        processAndImport2DArray(data2D);
+      }, 100);
     }
 
-    // 通用處理匯入二維陣列的核心邏輯 (無論來源是貼上或檔案)
+    // ✅ 通用處理匯入二維陣列的核心邏輯 (加入文字提示更新)
     function processAndImport2DArray(data2D) {
-      if (data2D.length < 2) {
-        showMessage('❌ 資料行數不足 (至少需包含標題與一列資料)', 'error', 4);
-        return;
-      }
-
-      // 解析標題列 (第一行)
-      const headerLine = data2D[0].map(h => String(h).trim());
+      showProgress('驗證與整理格式中');
       
-      // 定義必要欄位
-      const requiredHeaders = currentImportType === 'student'
-        ? ['班級', '座號', '身分證後四碼', '姓名', '學號']
-        : ['班級', '導師'];
+      setTimeout(() => {
+        if (data2D.length < 2) {
+          finishProgress(() => showMessage('❌ 資料行數不足 (至少需包含標題與一列資料)', 'error', 4));
+          return;
+        }
 
-      // 檢查欄位是否存在
-      const missing = requiredHeaders.filter(h => !headerLine.includes(h));
-      if (missing.length > 0) {
-        // 先結束讀取的進度條再報錯
-        finishProgress(() => showMessage(`❌ 缺少欄位：${missing.join(', ')}`, 'error', 5));
-        return;
-      }
-
-      // 建立索引對應 Map (找出每個標題在第幾欄)
-      const colIndices = requiredHeaders.map(h => headerLine.indexOf(h));
-
-      // 解析資料列 (從第二行開始)
-      const listData = [];
-      for (let i = 1; i < data2D.length; i++) {
-        const row = data2D[i];
+        // 解析標題列 (第一行)
+        const headerLine = data2D[0].map(h => String(h).trim());
         
-        // 簡單過濾空行
-        if (row.length === 0 || row.every(c => String(c).trim() === '')) continue;
-        
-        // 依照需要的順序提取資料
-        const rowData = colIndices.map(idx => (row[idx] || '').toString().trim());
-        
-        // 再次檢查是否有空值資料列 (全空則跳過)
-        if (rowData.every(c => c === '')) continue;
-        
-        listData.push(rowData);
-      }
+        // 定義必要欄位
+        const requiredHeaders = currentImportType === 'student'
+          ? ['班級', '座號', '身分證後四碼', '姓名', '學號']
+          : ['班級', '導師'];
 
-      if (listData.length === 0) {
-        finishProgress(() => showMessage('❌ 沒有有效的資料列！', 'error'));
-        return;
-      }
+        // 檢查欄位是否存在
+        const missing = requiredHeaders.filter(h => !headerLine.includes(h));
+        if (missing.length > 0) {
+          finishProgress(() => showMessage(`❌ 缺少欄位：${missing.join(', ')}`, 'error', 5));
+          return;
+        }
 
-      // 送出資料到後端 (覆寫進度條狀態為寫入資料庫)
-      showProgress('匯入資料庫中');
-      const apiAction = currentImportType === 'student' ? 'importList' : 'importTeacher';
+        // 建立索引對應 Map (找出每個標題在第幾欄)
+        const colIndices = requiredHeaders.map(h => headerLine.indexOf(h));
 
-      callApi(apiAction, { listData }).then(res => {
-        finishProgress(() => {
-          if (res && res.success) {
-            showMessage('✅ 匯入成功！', 'success');
-            closeImportModal();
-          } else {
-            showMessage('❌ 匯入失敗：' + (res.message || '未知原因'), 'error');
-          }
+        // 解析資料列 (從第二行開始)
+        const listData = [];
+        for (let i = 1; i < data2D.length; i++) {
+          const row = data2D[i];
+          
+          // 簡單過濾空行
+          if (row.length === 0 || row.every(c => String(c).trim() === '')) continue;
+          
+          // 依照需要的順序提取資料
+          const rowData = colIndices.map(idx => (row[idx] || '').toString().trim());
+          
+          // 再次檢查是否有空值資料列 (全空則跳過)
+          if (rowData.every(c => c === '')) continue;
+          
+          listData.push(rowData);
+        }
+
+        if (listData.length === 0) {
+          finishProgress(() => showMessage('❌ 沒有有效的資料列！', 'error'));
+          return;
+        }
+
+        // 送出資料到後端
+        showProgress(`上傳 ${listData.length} 筆資料至資料庫中`);
+        const apiAction = currentImportType === 'student' ? 'importList' : 'importTeacher';
+
+        callApi(apiAction, { listData }).then(res => {
+          finishProgress(() => {
+            if (res && res.success) {
+              showMessage(`✅ 成功匯入 ${listData.length} 筆資料！`, 'success');
+              closeImportModal();
+              updateSummaryStats(); // 重新整理統計數字
+            } else {
+              showMessage('❌ 匯入失敗：' + (res.message || '未知原因'), 'error');
+            }
+          });
+        }).catch(err => {
+          finishProgress(() => showMessage('❌ 匯入發生異常：' + err.message, 'error'));
         });
-      });
+        
+      }, 100);
     }
 
     // 初始化下拉選單
