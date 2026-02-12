@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>鳳甲國中新生照片管理系統 (GitHub版)</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- 引入 Font Awesome 圖示 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   
   <style>
@@ -42,6 +42,16 @@
       letter-spacing: 2px;
     }
 
+    /* ----- 資料夾狀態指示燈 ----- */
+    #folder-status {
+      text-align: center; 
+      margin-top: -15px; 
+      margin-bottom: 25px; 
+      font-size: 22px; 
+      font-weight: bold; 
+      color: #555;
+    }
+
     /* ----- 表單區塊 ----- */
     .form-row { display: flex; justify-content: space-between; }
     .form-box {
@@ -56,19 +66,19 @@
     }
     .left-form { width: 100%; max-width: 1500px; margin: 0 auto; }
     
-    /* ----- 輸入欄位群組 (修正排版) ----- */
+    /* ----- 輸入欄位群組 (等寬修正) ----- */
     .input-group {
       display: flex; 
       align-items: center; 
-      gap: 15px; /* 增加間距 */
+      gap: 15px; 
       justify-content: flex-start; 
       padding-left: 100px;
-      margin-bottom: 15px; /* 增加垂直間距 */
+      margin-bottom: 15px;
     }
     .input-group:first-of-type { margin-top: 20px; }
     
     .input-group label {
-      width: 130px; /* 稍微加寬標籤 */
+      width: 130px; 
       text-align: right; 
       font-size: 26px; 
       white-space: nowrap;
@@ -76,15 +86,14 @@
       color: #333;
     }
     
-    /* ✅ 修正重點：統一輸入框樣式 */
     .input-group select, .input-group input {
       width: 430px; 
-      height: 50px;           /* ✅ 強制固定高度 */
+      height: 50px;           /* 強制固定高度 */
       font-size: 24px; 
-      padding: 5px 12px;      /* ✅ 統一內距 */
-      border: 2px solid #90caf9; /* 稍微加粗邊框 */
+      padding: 5px 12px;      /* 統一內距 */
+      border: 2px solid #90caf9; 
       border-radius: 8px;
-      box-sizing: border-box; /* ✅ 關鍵：讓內距與邊框計算在寬度內 */
+      box-sizing: border-box; /* 讓內距與邊框計算在寬度內 */
       background-color: #fff;
       outline: none;
       transition: border-color 0.2s, box-shadow 0.2s;
@@ -121,7 +130,7 @@
     .btn-purple { background: linear-gradient(to right, #8e24aa, #ba68c8); color: white; }
     .btn-cyan { background: linear-gradient(to right, #00bcd4, #4dd0e1); color: white; }
 
-    /* ----- 結果顯示區 (修正跑版問題) ----- */
+    /* ----- 結果顯示區 (修正分頁按鈕跑版) ----- */
     .bottom-result {
       width: 100%; 
       display: flex; 
@@ -252,7 +261,7 @@
     <h1 class="main-title">鳳甲國中新生照片管理系統</h1>
     
     <!-- 🆕 資料夾狀態指示燈 -->
-    <div id="folder-status" style="text-align: center; margin-top: -15px; margin-bottom: 25px; font-size: 22px; font-weight: bold; color: #555;">
+    <div id="folder-status">
       📁 照片資料夾狀態：<span id="folder-light" style="background: #e0e0e0; padding: 4px 12px; border-radius: 20px;">⚪ 檢查中...</span>
     </div>
 
@@ -319,7 +328,7 @@
           </button>
           <button class="btn btn-yellow" onclick="window.open('https://script.google.com/a/macros/fjm.kh.edu.tw/s/AKfycbxnwWvYKb7GJEJMxwkV29JhGsOJ2Lwx45TurUtWbhgk53MWk0uL-vPCXzI3dZM6Fvk1/exec')">去背網頁</button>
           <button class="btn btn-orange" onclick="window.open('https://mikania0000.github.io/New-student-PhotoUpload/')">照片上傳網頁</button>
-          <button class="btn btn-pink" onclick="window.open('https://script.google.com/a/macros/fjm.kh.edu.tw/s/AKfycby0U79yGo9rWVnw9J7RBCnJi6HDi-UK-v5dCUYOtUEUQjFyulNhKM5P_zZFJIAJT8MS/exec')">編班查詢網頁</button>
+          <button class="btn btn-pink" onclick="window.open('https://mikania0000.github.io/New-student-ParentQuery/')">編班查詢網頁</button>
           <button class="btn btn-purple" onclick="showAdvancedSettings()">進階設定</button>
         </div>
 
@@ -339,7 +348,6 @@
       <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:16px; margin-bottom:25px; background:#f3e5f5; padding:20px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
         <button class="btn btn-purple advanced-btn" onclick="window.open('https://docs.google.com/spreadsheets/d/1-iIXTbEeIqzaMnWQowqyvOquqZQLJpnRCUST-mVZ1Tw/edit?gid=1164346300#gid=1164346300')">📄原始工作表</button>
         <button class="btn btn-green advanced-btn" onclick="clearPhotoData()">🧹清空資料</button>
-        <!-- 匯入按鈕改為呼叫貼上視窗 -->
         <button class="btn btn-red advanced-btn" onclick="openImportModal('student')">🧒匯入新生名單</button>
         <button class="btn btn-blue advanced-btn" onclick="openImportModal('teacher')">👨‍🏫匯入導師名單</button>
         <button class="btn btn-orange advanced-btn" onclick="openPhotoFolder()">📂大頭照資料夾</button>
@@ -696,6 +704,7 @@
       }
     }
 
+    // ✅ 刪除列後觸發更新狀態燈
     function deleteRow(btn) {
       const row = btn.closest('tr');
       const uuid = row.dataset.uuid;
@@ -708,6 +717,7 @@
             if(res) {
               showMessage('✅ 已刪除', 'success');
               row.remove();
+              updateFolderStatus(); // 🆕 刪除後立即更新資料夾狀態
             } else {
               showMessage('❌ 刪除失敗', 'error');
             }
@@ -836,11 +846,15 @@
       window.open('https://drive.google.com/drive/u/0/folders/1PXYSIsQK61MxsoyZWoa8zwvhlw2oMgZu', '_blank');
     }
     
+    // ✅ 清空資料後觸發更新狀態燈
     function clearPhotoData() {
       showConfirmModal("⚠️ 確定清空所有大頭照資料？", () => {
          showProgress('清空中');
          callApi('clearData').then(() => {
-           finishProgress(() => showMessage('✅ 已清空', 'success'));
+           finishProgress(() => {
+             showMessage('✅ 已清空', 'success');
+             updateFolderStatus(); // 🆕 清空後立即更新資料夾狀態
+           });
          });
       });
     }
@@ -949,10 +963,14 @@
 
     window.onload = () => {
       initSelects();
+      
+      // 初始加載統計資料與資料夾狀態
       updateSummaryStats();
-      updateFolderStatus(); // 🆕 初始檢查資料夾狀態
+      updateFolderStatus(); 
+      
+      // 設定定時器
       setInterval(updateSummaryStats, 10000); // 10秒更新一次
-      setInterval(updateFolderStatus, 30000); // 🆕 30秒更新一次資料夾狀態
+      setInterval(updateFolderStatus, 30000); // 30秒更新一次資料夾狀態
     };
   </script>
 </body>
