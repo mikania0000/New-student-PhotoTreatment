@@ -250,6 +250,12 @@
 <body>
   <div class="main-container">
     <h1 class="main-title">鳳甲國中新生照片管理系統</h1>
+    
+    <!-- 🆕 資料夾狀態指示燈 -->
+    <div id="folder-status" style="text-align: center; margin-top: -15px; margin-bottom: 25px; font-size: 22px; font-weight: bold; color: #555;">
+      📁 照片資料夾狀態：<span id="folder-light" style="background: #e0e0e0; padding: 4px 12px; border-radius: 20px;">⚪ 檢查中...</span>
+    </div>
+
     <div class="form-row">
       <div class="form-box left-form">
         <!-- 查詢條件區 -->
@@ -803,6 +809,20 @@
       }).catch(e => console.log("統計更新失敗(可能網路問題)"));
     }
 
+    // 🆕 檢查資料夾狀態與檔案數量
+    function updateFolderStatus() {
+      callApi('checkFolderStatus').then(res => {
+        const light = document.getElementById('folder-light');
+        if (res && res.exists) {
+          light.innerHTML = `<span style="color:#2e7d32; background:#c8e6c9; padding:4px 12px; border-radius:20px;">🟢 正常 (共 ${res.count} 張照片)</span>`;
+        } else {
+          light.innerHTML = `<span style="color:#c62828; background:#ffcdd2; padding:4px 12px; border-radius:20px;">🔴 遺失或被刪除！</span>`;
+        }
+      }).catch(e => {
+        document.getElementById('folder-light').innerHTML = `<span style="color:#ef6c00; background:#ffe0b2; padding:4px 12px; border-radius:20px;">🟡 無法檢查</span>`;
+      });
+    }
+
     function showAdvancedSettings() {
       document.getElementById("result-container").innerHTML = '';
       document.getElementById("stats-container").innerHTML = '';
@@ -813,7 +833,7 @@
     }
     
     function openPhotoFolder() {
-      window.open('https://drive.google.com/drive/folders/1PXYSIsQK61MxsoyZWoa8zwvhlw2oMgZu?usp=drive_link', '_blank');
+      window.open('https://drive.google.com/drive/u/0/folders/1PXYSIsQK61MxsoyZWoa8zwvhlw2oMgZu', '_blank');
     }
     
     function clearPhotoData() {
@@ -930,7 +950,9 @@
     window.onload = () => {
       initSelects();
       updateSummaryStats();
+      updateFolderStatus(); // 🆕 初始檢查資料夾狀態
       setInterval(updateSummaryStats, 10000); // 10秒更新一次
+      setInterval(updateFolderStatus, 30000); // 🆕 30秒更新一次資料夾狀態
     };
   </script>
 </body>
