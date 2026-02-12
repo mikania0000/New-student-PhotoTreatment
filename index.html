@@ -167,7 +167,7 @@
     /* ----- 統計盒子 (右上角) ----- */
     .stats-box {
       position: absolute; 
-      top: 290px; /* ✅ 從 220px 改為 290px，往下移動避免超出或遮擋容器 */
+      top: 290px; 
       right: 280px; 
       width: 340px;
       background: linear-gradient(to bottom right, #fff9c4, #fffde7);
@@ -213,13 +213,18 @@
     /* ----- 貼上匯入 Modal 特別樣式 ----- */
     #paste-modal-dialog {
       width: 800px; max-width: 90%;
+      max-height: 85vh;            /* ✅ 新增：最大高度限制，防止超出螢幕 */
+      display: flex;               /* ✅ 新增：使用 Flexbox 佈局 */
+      flex-direction: column;      /* ✅ 新增：垂直排列 */
       border: 3px solid #2196f3;
     }
     #paste-textarea {
-      width: 100%; height: 350px; 
+      width: 100%; 
+      flex: 1;                     /* ✅ 新增：自動填滿剩餘高度 */
+      min-height: 150px;           /* ✅ 新增：設定最小高度 */
       font-size: 16px; padding: 10px; border: 1px solid #ccc; border-radius: 8px;
       margin-top: 10px; margin-bottom: 20px; font-family: monospace;
-      resize: vertical;
+      resize: none;                /* ✅ 修改：由 Flex 自動分配高度，禁止手動拉放 */
       white-space: pre; overflow-x: auto;
     }
 
@@ -375,15 +380,16 @@
   <div id="paste-modal" class="modal-mask">
     <div id="paste-modal-dialog" class="modal-dialog">
       <h2 id="paste-modal-title" style="color:#1976d2; font-size:32px; font-weight:bold;">匯入資料</h2>
-      <div style="text-align:left; color:#555; margin-bottom:10px; font-size:18px; line-height: 1.5; background: #e3f2fd; padding: 10px; border-radius: 8px;">
+      <div style="text-align:left; color:#555; margin-bottom:10px; font-size:18px; line-height: 1.5; background: #e3f2fd; padding: 10px; border-radius: 8px; flex-shrink: 0;">
         <strong>📋 使用說明：</strong><br>
         1. 請在 Excel 中選取資料範圍 (必須包含標題列)，按下 Ctrl+C 複製。<br>
         2. 在下方框框內按下 Ctrl+V 貼上。<br>
         3. 系統將自動識別必要欄位：<br>
-        <span id="paste-keywords" style="background:#fff; padding:2px 8px; border-radius:4px; color:#d32f2f; font-weight:bold; border: 1px solid #ffcdd2;"></span>
+        <span id="paste-keywords" style="background:#fff; padding:2px 8px; border-radius:4px; color:#d32f2f; font-weight:bold; border: 1px solid #ffcdd2;"></span><br>
+        <strong style="color: #d32f2f;">⚠️ 注意：匯入時將會自動清空原有的資料表內容！</strong>
       </div>
       <textarea id="paste-textarea" placeholder="請在此貼上 Excel 資料..."></textarea>
-      <div style="margin-top: 15px;">
+      <div style="margin-top: 15px; flex-shrink: 0;">
         <button onclick="submitPasteImport()" style="font-size:24px; background:#43a047; color:#fff; border:none; border-radius:10px; padding:8px 28px; margin-right:24px; cursor:pointer;">
           <i class="fas fa-file-import"></i> 確定匯入
         </button>
