@@ -239,7 +239,7 @@
     const DEPLOY_ID = 'AKfycbxyj4HI3ZyvXnSrZechSG7ODYSeyLFusBWLIfp7Ezoh435chugb-2Xr7doTUpgj-WfclA';
     const GAS_URL = `https://script.google.com/macros/s/${DEPLOY_ID}/exec`;
 
-    // ✅ 通用 API 呼叫函式 (取代 google.script.run)
+    // ✅ 通用 API 呼叫函式
     async function callApi(action, data = {}) {
       try {
         const payload = { action: action, data: data };
@@ -364,6 +364,9 @@
     </div>
   </div>
 
+  <!-- 🆕 進度條專用遮罩 -->
+  <div id="progress-mask" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1999; display: none; backdrop-filter: blur(2px);"></div>
+
   <!-- 漂浮提示訊息 -->
   <div id="floating-msg" class="msg"></div>
 
@@ -389,7 +392,7 @@
         <strong style="color: #d32f2f;">⚠️ 注意：匯入時將會自動清空原有的資料表內容！</strong>
       </div>
 
-      <!-- 🆕 檔案選擇區塊 -->
+      <!-- 檔案選擇區塊 -->
       <div style="text-align: left; margin-bottom: 10px; flex-shrink: 0; display: flex; align-items: center; gap: 10px;">
         <input type="file" id="excel-file-input" accept=".xlsx, .xls, .csv" style="display: none;" onchange="handleFileSelect(event)">
         <button onclick="document.getElementById('excel-file-input').click()" style="font-size:20px; background:#1976d2; color:white; border:none; border-radius:8px; padding:8px 20px; cursor:pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
@@ -419,28 +422,65 @@
       setTimeout(() => { msg.style.display = 'none'; }, durationInSeconds * 1000);
     }
 
+    // ✅ 全新升級：帶有動畫、Spinner 與遮罩的進度條
     let progressInterval;
     function showProgress(text = '處理中') {
+      const mask = document.getElementById('progress-mask');
+      if (mask) mask.style.display = 'block';
+      
       const msg = document.getElementById('floating-msg');
-      let percent = 10;
-      msg.className = 'msg msg-progress';
-      msg.innerText = `⏳ ${text}...${percent}%`;
+      let percent = 1;
+      msg.className = `msg msg-progress`;
+      
+      // 插入動態旋轉圖示與平滑進度條
+      msg.innerHTML = `
+        <div style="display:flex; flex-direction:column; align-items:center; gap:12px; min-width: 260px; padding: 10px;">
+          <i class="fas fa-circle-notch fa-spin" style="font-size: 42px; margin-bottom: 5px;"></i>
+          <div style="font-size: 24px; font-weight: bold;">${text}... <span id="progress-percent">${percent}</span>%</div>
+          <div style="width: 100%; background: rgba(255,255,255,0.4); border-radius: 8px; height: 14px; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);">
+            <div id="progress-bar-fill" style="width: ${percent}%; background: #fff; height: 100%; border-radius: 8px; transition: width 0.4s ease-out;"></div>
+          </div>
+          <div style="font-size: 15px; margin-top: 5px; opacity: 0.9;">資料傳輸中，請勿關閉網頁</div>
+        </div>
+      `;
       msg.style.display = 'block';
+
+      // 平滑進度計算邏輯
       progressInterval = setInterval(() => {
-        percent += 10;
-        if (percent <= 90) msg.innerText = `⏳ ${text}...${percent}%`;
-        else clearInterval(progressInterval);
-      }, 300);
+        let remaining = 99 - percent;
+        let increment = Math.max(1, Math.floor(remaining / 8));
+        
+        if (percent >= 90) {
+           increment = Math.random() > 0.5 ? 1 : 0; // 接近尾聲時緩慢增加
+        }
+        
+        percent += increment;
+        if (percent > 99) percent = 99;
+        
+        const pctText = document.getElementById('progress-percent');
+        const barFill = document.getElementById('progress-bar-fill');
+        if (pctText) pctText.innerText = percent;
+        if (barFill) barFill.style.width = percent + '%';
+      }, 350);
     }
 
     function finishProgress(callback) {
       clearInterval(progressInterval);
-      const msg = document.getElementById('floating-msg');
-      msg.innerText = '⏳ 完成...100%';
+      const pctText = document.getElementById('progress-percent');
+      const barFill = document.getElementById('progress-bar-fill');
+      if (pctText) pctText.innerText = 100;
+      if (barFill) barFill.style.width = '100%';
+      
       setTimeout(() => {
+        const mask = document.getElementById('progress-mask');
+        if (mask) mask.style.display = 'none';
+        
+        const msg = document.getElementById('floating-msg');
         msg.style.display = 'none';
+        msg.innerHTML = ''; // 清除內容，避免影響後續 showMessage
+        
         if (callback) callback();
-      }, 500);
+      }, 500); 
     }
 
     // 通用確認對話框
@@ -671,7 +711,7 @@
           newStatus += "：" + reasonInput.value.trim();
         }
 
-        showProgress('更新中');
+        showProgress('更新資料中');
         callApi('update', {uuid, newPhotoUrl: newPhoto, newStatus: newStatus})
           .then(res => {
             finishProgress(() => {
@@ -867,7 +907,7 @@
     
     function clearPhotoData() {
       showConfirmModal("⚠️ 確定清空所有大頭照資料？", () => {
-         showProgress('清空中');
+         showProgress('清空資料中');
          callApi('clearData').then(() => {
            finishProgress(() => {
              showMessage('✅ 已清空', 'success');
@@ -900,7 +940,7 @@
       document.getElementById('paste-modal').style.display = 'none';
     }
 
-    // 🆕 處理選擇的 Excel 檔案
+    // 處理選擇的 Excel 檔案
     function handleFileSelect(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -942,7 +982,7 @@
       processAndImport2DArray(data2D);
     }
 
-    // 🆕 通用處理匯入二維陣列的核心邏輯 (無論來源是貼上或檔案)
+    // 通用處理匯入二維陣列的核心邏輯 (無論來源是貼上或檔案)
     function processAndImport2DArray(data2D) {
       if (data2D.length < 2) {
         showMessage('❌ 資料行數不足 (至少需包含標題與一列資料)', 'error', 4);
@@ -960,7 +1000,8 @@
       // 檢查欄位是否存在
       const missing = requiredHeaders.filter(h => !headerLine.includes(h));
       if (missing.length > 0) {
-        showMessage(`❌ 缺少欄位：${missing.join(', ')}`, 'error', 5);
+        // 先結束讀取的進度條再報錯
+        finishProgress(() => showMessage(`❌ 缺少欄位：${missing.join(', ')}`, 'error', 5));
         return;
       }
 
@@ -985,12 +1026,12 @@
       }
 
       if (listData.length === 0) {
-        showMessage('❌ 沒有有效的資料列！', 'error');
+        finishProgress(() => showMessage('❌ 沒有有效的資料列！', 'error'));
         return;
       }
 
-      // 送出資料到後端
-      showProgress('匯入資料庫');
+      // 送出資料到後端 (覆寫進度條狀態為寫入資料庫)
+      showProgress('匯入資料庫中');
       const apiAction = currentImportType === 'student' ? 'importList' : 'importTeacher';
 
       callApi(apiAction, { listData }).then(res => {
