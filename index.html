@@ -7,6 +7,8 @@
   <!-- 引入 Font Awesome 圖示 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- 🆕 引入 Google Sign-In API -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   
   <style>
     /* ----- 全域樣式 ----- */
@@ -19,6 +21,24 @@
       min-width: 1600px;
     }
     
+    /* 🆕 登入畫面遮罩 */
+    #login-screen {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(135deg, #e3f2fd, #fffde7);
+      z-index: 99999;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .login-box {
+      background: white; padding: 40px; border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center;
+    }
+    .login-box h1 {
+      font-size: 40px; color: #1976d2; margin-bottom: 10px;
+    }
+    .login-box p {
+      font-size: 20px; color: #666; margin-bottom: 30px;
+    }
+
     /* ----- 主容器 ----- */
     .main-container {
       width: 1300px;
@@ -28,6 +48,8 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       padding: 20px;
       position: relative;
+      /* 預設隱藏主畫面，登入後顯示 */
+      display: none; 
     }
     
     /* ----- 標題 ----- */
@@ -130,6 +152,7 @@
     .btn-brown { background: linear-gradient(to right, #795548, #8D6E63); color: white; }
     .btn-purple { background: linear-gradient(to right, #8e24aa, #ba68c8); color: white; }
     .btn-cyan { background: linear-gradient(to right, #00bcd4, #4dd0e1); color: white; }
+    .btn-gray { background: linear-gradient(to right, #757575, #9E9E9E); color: white; }
 
     /* ----- 結果顯示區 ----- */
     .bottom-result {
@@ -228,6 +251,15 @@
       resize: none;                
       white-space: pre; overflow-x: auto;
     }
+    
+    /* 🆕 帳號管理 Modal */
+    #account-modal-dialog {
+      width: 700px; max-width: 90%; max-height: 80vh;
+      display: flex; flex-direction: column; border: 3px solid #8e24aa;
+    }
+    .account-table-container {
+      overflow-y: auto; flex: 1; margin: 15px 0; border: 1px solid #ccc; border-radius: 8px;
+    }
 
     @media screen and (max-width: 1700px) {
       .main-container { width: 95%; }
@@ -238,6 +270,10 @@
     // ✅ 設定 Google Apps Script 部署網址 (Deploy ID)
     const DEPLOY_ID = 'AKfycbxyj4HI3ZyvXnSrZechSG7ODYSeyLFusBWLIfp7Ezoh435chugb-2Xr7doTUpgj-WfclA';
     const GAS_URL = `https://script.google.com/macros/s/${DEPLOY_ID}/exec`;
+    // 🆕 Google Client ID
+    const GOOGLE_CLIENT_ID = "553016940521-araovlp30ctbqn6um5rr49q3es5jm4jg.apps.googleusercontent.com";
+
+    let currentUserEmail = "";
 
     // ✅ 通用 API 呼叫函式
     async function callApi(action, data = {}) {
@@ -262,10 +298,77 @@
         throw e;
       }
     }
+    
+    // 🆕 解析 JWT Token 以獲取 Email
+    function decodeJwtResponse(token) {
+      try {
+        let base64Url = token.split('.')[1];
+        let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        let jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        return JSON.parse(jsonPayload);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    // 🆕 Google 登入 Callback
+    function handleCredentialResponse(response) {
+      const payload = decodeJwtResponse(response.credential);
+      if (payload && payload.email) {
+        document.getElementById('login-msg').innerText = "驗證授權中，請稍候...";
+        document.getElementById('login-msg').style.color = "#1976d2";
+        
+        // 呼叫後端驗證白名單
+        callApi('verifyLogin', { email: payload.email }).then(isAuthorized => {
+          if (isAuthorized) {
+            currentUserEmail = payload.email;
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('main-app').style.display = 'block';
+            startApp(); // 啟動系統初始載入
+            showMessage(`歡迎登入：${payload.email}`, 'success');
+          } else {
+            document.getElementById('login-msg').innerText = `❌ 帳號 ${payload.email} 不在系統白名單中，請聯絡管理員。`;
+            document.getElementById('login-msg').style.color = "red";
+          }
+        }).catch(err => {
+          document.getElementById('login-msg').innerText = "連線驗證失敗，請重試。";
+          document.getElementById('login-msg').style.color = "red";
+        });
+      }
+    }
   </script>
 </head>
 <body>
-  <div class="main-container">
+
+  <!-- 🆕 登入遮罩畫面 -->
+  <div id="login-screen">
+    <div class="login-box">
+      <h1>鳳甲國中新生照片管理系統</h1>
+      <p>請使用 Google 帳號進行身分驗證</p>
+      
+      <div id="g_id_onload"
+         data-client_id="553016940521-araovlp30ctbqn6um5rr49q3es5jm4jg.apps.googleusercontent.com"
+         data-context="signin"
+         data-ux_mode="popup"
+         data-callback="handleCredentialResponse"
+         data-auto_prompt="false">
+      </div>
+      <div class="g_id_signin"
+         data-type="standard"
+         data-shape="rectangular"
+         data-theme="outline"
+         data-text="signin_with"
+         data-size="large"
+         data-logo_alignment="center">
+      </div>
+      
+      <div id="login-msg" style="margin-top: 20px; font-size: 18px; font-weight: bold; min-height: 24px;"></div>
+    </div>
+  </div>
+
+  <div class="main-container" id="main-app">
     <h1 class="main-title">鳳甲國中新生照片管理系統</h1>
     
     <!-- 資料夾狀態指示燈 -->
@@ -359,12 +462,14 @@
         <button class="btn btn-red advanced-btn" onclick="openImportModal('student')">🧒匯入新生名單</button>
         <button class="btn btn-blue advanced-btn" onclick="openImportModal('teacher')">👨‍🏫匯入導師名單</button>
         <button class="btn btn-orange advanced-btn" onclick="openPhotoFolder()">📂大頭照資料夾</button>
+        <!-- 🆕 新增帳號管理按鈕 -->
+        <button class="btn btn-gray advanced-btn" onclick="openAccountModal()">👥帳號管理</button>
       </div>
       <button class="cancel-btn" onclick="hideAdvancedSettings()">❌ 離開設定</button>
     </div>
   </div>
 
-  <!-- 🆕 進度條專用遮罩 -->
+  <!-- 進度條專用遮罩 -->
   <div id="progress-mask" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1999; display: none; backdrop-filter: blur(2px);"></div>
 
   <!-- 漂浮提示訊息 -->
@@ -376,6 +481,33 @@
       <div id="modal-message" style="font-size:28px; margin-bottom:30px; color:#a30000;"></div>
       <button id="modal-ok-btn" style="font-size:24px; background:#43a047; color:#fff; border:none; border-radius:10px; padding:8px 28px; margin-right:24px; cursor:pointer;">確定</button>
       <button id="modal-cancel-btn" style="font-size:24px; background:#bdbdbd; color:#333; border:none; border-radius:10px; padding:8px 28px; cursor:pointer;">取消</button>
+    </div>
+  </div>
+
+  <!-- 🆕 帳號管理 Modal -->
+  <div id="account-modal" class="modal-mask">
+    <div id="account-modal-dialog" class="modal-dialog">
+      <h2 style="color:#8e24aa; font-size:32px; font-weight:bold; margin-top:0;">👥 白名單帳號管理</h2>
+      
+      <div style="display:flex; gap:10px; margin-bottom:10px;">
+        <input type="text" id="new-account-email" placeholder="輸入要新增的 Google 帳號 (Email)" style="flex:1; font-size:20px; padding:8px; border:2px solid #ccc; border-radius:8px;">
+        <button onclick="addAccount()" class="btn btn-green" style="font-size:20px;"><i class="fas fa-plus"></i> 新增</button>
+      </div>
+
+      <div class="account-table-container">
+        <table id="account-table" style="margin:0;">
+          <thead style="background:#ba68c8;">
+            <tr><th>授權 Google 帳號</th><th style="width:180px;">操作</th></tr>
+          </thead>
+          <tbody>
+            <!-- 動態產生 -->
+          </tbody>
+        </table>
+      </div>
+
+      <div style="margin-top: 15px; flex-shrink: 0;">
+        <button onclick="closeAccountModal()" class="cancel-btn">關閉視窗</button>
+      </div>
     </div>
   </div>
 
@@ -422,7 +554,7 @@
       setTimeout(() => { msg.style.display = 'none'; }, durationInSeconds * 1000);
     }
 
-    // ✅ 全新升級：防卡死、動態文字更新進度條
+    // 進度條
     let progressInterval;
     let progressPercent = 0;
 
@@ -431,7 +563,6 @@
       const msg = document.getElementById('floating-msg');
 
       if (mask.style.display !== 'block') {
-        // 第一次開啟進度條
         mask.style.display = 'block';
         msg.className = `msg msg-progress`;
         progressPercent = 1;
@@ -454,21 +585,15 @@
         progressInterval = setInterval(() => {
           let remaining = 99 - progressPercent;
           let increment = Math.max(1, Math.floor(remaining / 10));
-          
-          if (progressPercent >= 90) {
-             increment = Math.random() > 0.5 ? 1 : 0; 
-          }
-          
+          if (progressPercent >= 90) { increment = Math.random() > 0.5 ? 1 : 0; }
           progressPercent += increment;
           if (progressPercent > 99) progressPercent = 99;
-          
           const pctText = document.getElementById('progress-percent');
           const barFill = document.getElementById('progress-bar-fill');
           if (pctText) pctText.innerText = Math.floor(progressPercent);
           if (barFill) barFill.style.width = progressPercent + '%';
         }, 300);
       } else {
-        // 若進度條已開啟，僅更新文字，不中斷動畫
         const display = document.getElementById('progress-text-display');
         if (display) {
             display.innerHTML = `${text}... <span id="progress-percent">${Math.floor(progressPercent)}</span>%`;
@@ -486,16 +611,13 @@
       setTimeout(() => {
         const mask = document.getElementById('progress-mask');
         if (mask) mask.style.display = 'none';
-        
         const msg = document.getElementById('floating-msg');
         msg.style.display = 'none';
-        msg.innerHTML = ''; // 清除內容
-        
+        msg.innerHTML = '';
         if (callback) callback();
       }, 500); 
     }
 
-    // 通用確認對話框
     function showConfirmModal(msg, onOk) {
       const mask = document.getElementById('modal-mask');
       document.getElementById('modal-message').innerText = msg;
@@ -928,22 +1050,119 @@
       });
     }
 
-    // ------------------- 🆕 貼上 / 檔案匯入邏輯 (升級版防卡死) -------------------
+    // ------------------- 帳號管理邏輯 -------------------
+    function openAccountModal() {
+      document.getElementById('account-modal').style.display = 'block';
+      document.getElementById('new-account-email').value = '';
+      loadAccounts();
+    }
 
-    let currentImportType = ''; // 'student' or 'teacher'
+    function closeAccountModal() {
+      document.getElementById('account-modal').style.display = 'none';
+    }
+
+    function loadAccounts() {
+      const tbody = document.querySelector('#account-table tbody');
+      tbody.innerHTML = '<tr><td colspan="2">⏳ 載入中...</td></tr>';
+      callApi('getWhitelist').then(list => {
+        tbody.innerHTML = '';
+        if(list.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="2">無任何帳號資料</td></tr>';
+          return;
+        }
+        list.forEach(email => {
+          tbody.innerHTML += `
+            <tr data-email="${email}">
+              <td class="email-cell" style="text-align:left; padding-left:20px; font-size:20px;">${email}</td>
+              <td>
+                <button class="modify-btn" onclick="startEditAccount(this)">修改</button>
+                <button class="delete-btn" onclick="deleteAccount('${email}')">刪除</button>
+              </td>
+            </tr>
+          `;
+        });
+      });
+    }
+
+    function addAccount() {
+      const input = document.getElementById('new-account-email');
+      const email = input.value.trim();
+      if(!email) { showMessage('請輸入 Email', 'error'); return; }
+      
+      showProgress('新增帳號中');
+      callApi('addWhitelist', { email: email }).then(res => {
+        finishProgress(() => {
+          if(res.success) {
+            showMessage('✅ 新增成功', 'success');
+            input.value = '';
+            loadAccounts();
+          } else {
+            showMessage('❌ ' + res.message, 'error');
+          }
+        });
+      });
+    }
+
+    function startEditAccount(btn) {
+      const tr = btn.closest('tr');
+      const oldEmail = tr.dataset.email;
+      const cell = tr.querySelector('.email-cell');
+      
+      cell.innerHTML = `<input type="text" value="${oldEmail}" style="width:90%; font-size:18px; padding:4px;">`;
+      btn.innerText = "儲存";
+      btn.classList.add("btn-green");
+      btn.onclick = function() { saveEditAccount(this, oldEmail); };
+    }
+
+    function saveEditAccount(btn, oldEmail) {
+      const tr = btn.closest('tr');
+      const newEmail = tr.querySelector('input').value.trim();
+      if(!newEmail) return;
+
+      showProgress('更新帳號中');
+      callApi('updateWhitelist', { oldEmail: oldEmail, newEmail: newEmail }).then(res => {
+        finishProgress(() => {
+          if(res.success) {
+            showMessage('✅ 修改成功', 'success');
+            loadAccounts();
+          } else {
+            showMessage('❌ ' + (res.message || '修改失敗'), 'error');
+            loadAccounts();
+          }
+        });
+      });
+    }
+
+    function deleteAccount(email) {
+      showConfirmModal(`⚠️ 確定要刪除帳號 ${email} 嗎？`, () => {
+        showProgress('刪除帳號中');
+        callApi('deleteWhitelist', { email: email }).then(res => {
+          finishProgress(() => {
+            if(res.success) {
+              showMessage('✅ 已刪除', 'success');
+              loadAccounts();
+            } else {
+              showMessage('❌ 刪除失敗', 'error');
+            }
+          });
+        });
+      });
+    }
+
+    // ------------------- 貼上 / 檔案匯入邏輯 -------------------
+    let currentImportType = '';
 
     function openImportModal(type) {
       currentImportType = type;
       const title = type === 'student' ? '匯入新生名單' : '匯入導師名單';
-      // 關鍵字
       const keywords = type === 'student' 
         ? '班級、座號、身分證後四碼、姓名、學號' 
         : '班級、導師';
         
       document.getElementById('paste-modal-title').innerText = title;
       document.getElementById('paste-keywords').innerText = keywords;
-      document.getElementById('paste-textarea').value = ''; // 清空
-      document.getElementById('excel-file-input').value = ''; // 清空選擇的檔案
+      document.getElementById('paste-textarea').value = '';
+      document.getElementById('excel-file-input').value = '';
       document.getElementById('paste-modal').style.display = 'block';
     }
 
@@ -951,33 +1170,25 @@
       document.getElementById('paste-modal').style.display = 'none';
     }
 
-    // ✅ 處理選擇的 Excel 檔案 (使用 setTimeout 確保 UI 動畫優先)
     function handleFileSelect(event) {
       const file = event.target.files[0];
       if (!file) return;
 
       showProgress('讀取 Excel 檔案中');
       
-      // 給瀏覽器一點時間繪製進度條，再執行吃資源的 FileReader
       setTimeout(() => {
         const reader = new FileReader();
         reader.onload = function(e) {
           showProgress('解析 Excel 內容中');
-          
-          // 再次延遲，確保進度文字更新，並防止 XLSX.read 卡死畫面
           setTimeout(() => {
             try {
               const data = new Uint8Array(e.target.result);
               const workbook = XLSX.read(data, {type: 'array'});
               const ws = workbook.Sheets[workbook.SheetNames[0]];
-              
-              // 轉為 2D 陣列
               const json = XLSX.utils.sheet_to_json(ws, {header: 1, defval: ""});
-              
-              event.target.value = ''; // 允許重新選擇相同檔案
+              event.target.value = '';
               processAndImport2DArray(json);
             } catch (err) {
-              console.error(err);
               finishProgress(() => showMessage("❌ 解析 Excel 失敗！請確定檔案格式正確。", "error", 4));
             }
           }, 100);
@@ -986,7 +1197,6 @@
       }, 100);
     }
 
-    // ✅ 處理貼上的文字 (加入 setTimeout)
     function submitPasteImport() {
       const text = document.getElementById('paste-textarea').value.trim();
       if (!text) {
@@ -997,15 +1207,12 @@
       showProgress('解析文字資料中');
       
       setTimeout(() => {
-        // 將貼上文字轉為 2D 陣列 (Tab 分隔)
         const rows = text.split(/\r?\n/);
         const data2D = rows.map(row => row.split('\t').map(cell => cell.trim()));
-        
         processAndImport2DArray(data2D);
       }, 100);
     }
 
-    // ✅ 通用處理匯入二維陣列的核心邏輯 (加入文字提示更新)
     function processAndImport2DArray(data2D) {
       showProgress('驗證與整理格式中');
       
@@ -1015,38 +1222,25 @@
           return;
         }
 
-        // 解析標題列 (第一行)
         const headerLine = data2D[0].map(h => String(h).trim());
-        
-        // 定義必要欄位
         const requiredHeaders = currentImportType === 'student'
           ? ['班級', '座號', '身分證後四碼', '姓名', '學號']
           : ['班級', '導師'];
 
-        // 檢查欄位是否存在
         const missing = requiredHeaders.filter(h => !headerLine.includes(h));
         if (missing.length > 0) {
           finishProgress(() => showMessage(`❌ 缺少欄位：${missing.join(', ')}`, 'error', 5));
           return;
         }
 
-        // 建立索引對應 Map (找出每個標題在第幾欄)
         const colIndices = requiredHeaders.map(h => headerLine.indexOf(h));
-
-        // 解析資料列 (從第二行開始)
         const listData = [];
+        
         for (let i = 1; i < data2D.length; i++) {
           const row = data2D[i];
-          
-          // 簡單過濾空行
           if (row.length === 0 || row.every(c => String(c).trim() === '')) continue;
-          
-          // 依照需要的順序提取資料
           const rowData = colIndices.map(idx => (row[idx] || '').toString().trim());
-          
-          // 再次檢查是否有空值資料列 (全空則跳過)
           if (rowData.every(c => c === '')) continue;
-          
           listData.push(rowData);
         }
 
@@ -1055,7 +1249,6 @@
           return;
         }
 
-        // 送出資料到後端
         showProgress(`上傳 ${listData.length} 筆資料至資料庫中`);
         const apiAction = currentImportType === 'student' ? 'importList' : 'importTeacher';
 
@@ -1064,7 +1257,7 @@
             if (res && res.success) {
               showMessage(`✅ 成功匯入 ${listData.length} 筆資料！`, 'success');
               closeImportModal();
-              updateSummaryStats(); // 重新整理統計數字
+              updateSummaryStats(); 
             } else {
               showMessage('❌ 匯入失敗：' + (res.message || '未知原因'), 'error');
             }
@@ -1076,7 +1269,6 @@
       }, 100);
     }
 
-    // 初始化下拉選單
     function initSelects() {
       const cls = document.getElementById('class');
       const seat = document.getElementById('seat');
@@ -1086,16 +1278,21 @@
         `<option value="${String(i+1).padStart(2,'0')}">${String(i+1).padStart(2,'0')}</option>`).join('');
     }
 
-    window.onload = () => {
+    // ✅ 將初始載入動作獨立為 startApp，等待登入後再呼叫
+    function startApp() {
       initSelects();
-      
-      // 初始加載統計資料與資料夾狀態
       updateSummaryStats();
       updateFolderStatus(); 
       
-      // 設定定時器
       setInterval(updateSummaryStats, 10000); // 10秒更新一次
       setInterval(updateFolderStatus, 30000); // 30秒更新一次資料夾狀態
+    }
+
+    // window.onload 不再直接載入資料，而是等待 Google Sign-in 觸發 callback
+    window.onload = () => {
+      // 確保畫面一開始只顯示登入框
+      document.getElementById('login-screen').style.display = 'flex';
+      document.getElementById('main-app').style.display = 'none';
     };
   </script>
 </body>
