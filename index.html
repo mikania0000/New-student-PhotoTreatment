@@ -73,7 +73,7 @@
 
     /* ----- 按鈕群組 ----- */
     .button-group { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 20px; }
-    .btn { font-size: 24px; padding: 10px 18px; border: none; border-radius: 6px; color: white; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: transform 0.2s ease; display: inline-flex; align-items: center; justify-content: center; }
+    .btn { font-size: 24px; padding: 10px 18px; border: none; border-radius: 6px; color: white; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: transform 0.2s ease; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; }
     .btn:hover { transform: scale(1.05); }
     .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
     
@@ -82,19 +82,19 @@
     .btn-red { background: linear-gradient(to right, #F44336, #EF5350); }
     .btn-blue { background: linear-gradient(to right, #2196F3, #42A5F5); }
     .btn-pink { background: linear-gradient(to right, #EC407A, #F06292); }
-    .btn-yellow { background: linear-gradient(to right, #FFEB3B, #FDD835); color: black; }
+    .btn-yellow { background: linear-gradient(to right, #FFEB3B, #FDD835); color: #333; }
     .btn-orange { background: linear-gradient(to right, #FF9800, #FFA726); }
-    .btn-brown { background: linear-gradient(to right, #795548, #8D6E63); color: white; }
-    .btn-purple { background: linear-gradient(to right, #8e24aa, #ba68c8); color: white; }
-    .btn-cyan { background: linear-gradient(to right, #00bcd4, #4dd0e1); color: white; }
-    .btn-gray { background: linear-gradient(to right, #757575, #9E9E9E); color: white; }
-    .btn-dark { background: linear-gradient(to right, #424242, #616161); color: white; }
+    .btn-brown { background: linear-gradient(to right, #795548, #8D6E63); }
+    .btn-purple { background: linear-gradient(to right, #8e24aa, #ba68c8); }
+    .btn-cyan { background: linear-gradient(to right, #00bcd4, #4dd0e1); }
+    .btn-gray { background: linear-gradient(to right, #757575, #9E9E9E); }
+    .btn-dark { background: linear-gradient(to right, #2c3e50, #4ca1af); }
 
     /* ----- 結果顯示區 ----- */
     .bottom-result { width: 100%; display: flex; flex-direction: column; align-items: center; margin-top: 30px; }
 
     /* ----- 訊息提示 ----- */
-    .msg { font-size: 26px; color: white; padding: 12px 20px; border-radius: 6px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2000; display: none; text-align: center; white-space: pre-line; max-width: 90%; word-break: break-word; }
+    .msg { font-size: 26px; color: white; padding: 12px 20px; border-radius: 6px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2000; display: none; text-align: center; white-space: pre-line; max-width: 90%; word-break: break-word; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
     .msg-error { background: #d32f2f; }
     .msg-success { background: #388e3c; }
     .msg-info { background: #1976d2; }
@@ -119,11 +119,11 @@
     .stats-box li:nth-child(odd) { background-color: #fffde7; }
 
     /* ----- 進階設定區 ----- */
-    #advanced-settings { max-width: 800px; margin: 30px auto; padding: 20px; background: #fbe9f7; border-radius: 12px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); }
+    #advanced-settings { max-width: 800px; margin: 30px auto; padding: 25px; background: #fbe9f7; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
     .advanced-btn { min-width: 150px; width: 180px; height: 56px; margin: 0; padding: 0 8px; font-size: 20px; font-weight: bold; border-radius: 12px; display: flex; align-items: center; justify-content: center; white-space: nowrap; }
 
     /* ----- Modal (通用遮罩) ----- */
-    .modal-mask { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 10001; display: none; }
+    .modal-mask { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 10001; display: none; backdrop-filter: blur(2px); }
     .modal-dialog { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; border-radius: 16px; box-shadow: 0 8px 36px rgba(0,0,0,0.2); padding: 28px 32px; min-width: 270px; text-align: center; }
     
     #paste-modal-dialog { width: 800px; max-width: 90%; max-height: 85vh; display: flex; flex-direction: column; border: 3px solid #2196f3; }
@@ -173,7 +173,7 @@
         }
       } catch (e) {
         console.error("API Error:", e);
-        showMessage('連線錯誤: ' + e.message, 'error', 5);
+        showMessage('系統提示: ' + e.message, 'error', 4);
         throw e;
       }
     }
@@ -235,6 +235,27 @@
         if (window.google && google.accounts.id) google.accounts.id.disableAutoSelect();
       });
     }
+
+    // 網頁載入時：檢查是否有 Token，若有則自動發動驗證
+    window.onload = () => {
+      if (sessionToken) {
+        document.getElementById('login-screen').style.display = 'flex';
+        document.getElementById('login-msg').innerText = "驗證連線狀態中...";
+        document.getElementById('login-msg').style.color = "#1976d2";
+        
+        callApi('forceAuth').then(res => {
+          document.getElementById('login-screen').style.display = 'none';
+          document.getElementById('main-app').style.display = 'block';
+          startApp();
+        }).catch(err => {
+          // 如果 Session 過期，登出清除
+          logout(false); 
+        });
+      } else {
+        document.getElementById('login-screen').style.display = 'flex';
+        document.getElementById('main-app').style.display = 'none';
+      }
+    };
   </script>
 </head>
 <body>
@@ -354,12 +375,12 @@
     <div id="advanced-settings" style="display:none; text-align:center;">
       <h2 style="font-size:36px; color:#6a1b9a; margin-bottom:20px; text-shadow:1px 1px 3px rgba(0,0,0,0.2);">⚙️ 進階設定選單</h2>
       <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:16px; margin-bottom:25px; background:#f3e5f5; padding:20px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-        <button class="btn btn-purple advanced-btn" onclick="window.open('https://docs.google.com/spreadsheets/d/1-iIXTbEeIqzaMnWQowqyvOquqZQLJpnRCUST-mVZ1Tw/edit?gid=1164346300#gid=1164346300')">📄原始工作表</button>
-        <button class="btn btn-green advanced-btn" onclick="clearPhotoData()">🧹清空資料</button>
-        <button class="btn btn-red advanced-btn" onclick="openImportModal('student')">🧒匯入新生名單</button>
-        <button class="btn btn-blue advanced-btn" onclick="openImportModal('teacher')">👨‍🏫匯入導師名單</button>
-        <button class="btn btn-orange advanced-btn" onclick="openPhotoFolder()">📂大頭照資料夾</button>
-        <button class="btn btn-gray advanced-btn" onclick="openAccountModal()">👥帳號管理</button>
+        <button class="btn btn-purple advanced-btn" onclick="window.open('https://docs.google.com/spreadsheets/d/1-iIXTbEeIqzaMnWQowqyvOquqZQLJpnRCUST-mVZ1Tw/edit?gid=1164346300#gid=1164346300')"><i class="fas fa-table"></i> 原始工作表</button>
+        <button class="btn btn-green advanced-btn" onclick="clearPhotoData()"><i class="fas fa-broom"></i> 清空資料</button>
+        <button class="btn btn-red advanced-btn" onclick="openImportModal('student')"><i class="fas fa-user-graduate"></i> 匯入新生名單</button>
+        <button class="btn btn-blue advanced-btn" onclick="openImportModal('teacher')"><i class="fas fa-chalkboard-teacher"></i> 匯入導師名單</button>
+        <button class="btn btn-orange advanced-btn" onclick="openPhotoFolder()"><i class="fas fa-folder-open"></i> 大頭照資料夾</button>
+        <button class="btn btn-gray advanced-btn" onclick="openAccountModal()"><i class="fas fa-users-cog"></i> 帳號管理</button>
       </div>
       <button class="cancel-btn" onclick="hideAdvancedSettings()">❌ 離開設定</button>
     </div>
@@ -374,7 +395,7 @@
   <!-- 通用確認 Modal (Yes/No) -->
   <div id="modal-mask" class="modal-mask">
     <div id="modal-dialog" class="modal-dialog">
-      <div id="modal-message" style="font-size:28px; margin-bottom:30px; color:#a30000;"></div>
+      <div id="modal-message" style="font-size:28px; margin-bottom:30px; color:#a30000; font-weight:bold;"></div>
       <button id="modal-ok-btn" style="font-size:24px; background:#43a047; color:#fff; border:none; border-radius:10px; padding:8px 28px; margin-right:24px; cursor:pointer;">確定</button>
       <button id="modal-cancel-btn" style="font-size:24px; background:#bdbdbd; color:#333; border:none; border-radius:10px; padding:8px 28px; cursor:pointer;">取消</button>
     </div>
@@ -614,19 +635,25 @@
               <tr data-uuid="${r.uuid}" data-orig-url="${r.photoUrl||''}" data-orig-status="${r.status||''}" data-orig-name="${r.name||''}">
                 <td>${r.grade}</td><td>${r.classNo}</td><td>${r.seatNo}</td><td>${r.name}</td><td>${r.sid}</td>
                 <td class="photo-url" style="word-break: break-all;">
-                  ${r.photoUrl ? `<a href="${r.photoUrl}" target="_blank" style="color:blue;">${r.photoUrl}</a>` : ''}
+                  ${r.photoUrl ? `<a href="${r.photoUrl}" target="_blank" style="color:blue;">${r.photoUrl}</a>` : '<span style="color:#999;">尚未上傳</span>'}
                 </td>
                 <td class="photo-img" data-file-id="${extractDriveFileId(r.photoUrl)}">
-                  <span class="loading-text">載入中...</span>
+                  ${r.photoUrl ? '<span class="loading-text">載入中...</span>' : '<span style="color:#999; font-weight:bold;">無相片</span>'}
                 </td>
-                <td class="status-cell"><span>${r.status || ''}</span></td>
+                <td class="status-cell">
+                  <span style="${r.status === '未上傳' ? 'color:#d32f2f; font-weight:bold;' : ''}">${r.status || '未上傳'}</span>
+                </td>
                 <td>
                   <div style="display:flex; flex-direction:column; gap:6px; align-items:center;">
+                    ${r.uuid ? `
                     <button class="modify-btn" onclick="editRow(this)">修改</button>
                     <button class="delete-btn" onclick="deleteRow(this)">刪除</button>
                     <button class="cancel-btn" onclick="cancelEdit(this)" style="font-size:14px; padding:4px 10px;">取消</button>
                     <button class="btn btn-cyan" style="font-size:16px; padding:6px 12px; border-radius:10px;" onclick="refreshImage(this)">重匯</button>
                     <button class="btn btn-orange rename-btn" style="font-size:16px; padding:6px 12px; border-radius:10px;" onclick="startRename(this)">改名</button>
+                    ` : `
+                    <span style="color:#888; font-size:14px; background:#eee; padding:4px 8px; border-radius:6px; white-space:nowrap;">無操作項目<br>(未上傳)</span>
+                    `}
                   </div>
                 </td>
               </tr>
@@ -648,13 +675,13 @@
     function loadImages() {
       document.querySelectorAll('.photo-img').forEach(td => {
         const fileId = td.getAttribute('data-file-id');
-        if (fileId) {
+        if (fileId && fileId !== "null") {
           callApi('getImage', {fileId: fileId}).then(res => {
             if (res && res.url) {
               td.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center;"><img src="${res.url}" style="max-height:160px; max-width:180px; object-fit:contain;"><div style="font-size:16px; margin-top:4px; color:#555;">${res.name || ''}</div></div>`;
             } else { td.innerHTML = `<span style="color:red;">無法顯示</span>`; }
           });
-        } else { td.innerHTML = `<span style="color:gray;">無法顯示</span>`; }
+        }
       });
     }
 
