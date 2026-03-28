@@ -164,10 +164,9 @@
         if (json.status === 'success') {
           return json.data;
         } else {
-          // 若後端回報 Token 過期或無權限，強制登出
           if (json.message && (json.message.includes('過期') || json.message.includes('未經授權') || json.message.includes('無效'))) {
             alert('登入已逾時或授權失效，請重新登入系統。');
-            logout(false); // 不呼叫後端 API，僅前端清除
+            logout(false);
           }
           throw new Error(json.message || '未知錯誤');
         }
@@ -178,10 +177,9 @@
       }
     }
 
-    // 🆕 登出功能：清除本地記憶、註銷 Token 並重整頁面
+    // 🆕 登出功能
     function logout(callBackend = true) {
       if (callBackend && sessionToken) {
-        // 嘗試通知後端註銷此 Session (不阻塞)
         fetch(GAS_URL, {
           method: 'POST',
           body: JSON.stringify({ action: 'revokeToken', sessionToken: sessionToken })
@@ -191,23 +189,20 @@
       localStorage.removeItem('photo_sys_token');
       sessionToken = "";
       
-      // 強制 Google 帳號重新選擇 (防止一鍵靜默登入錯誤帳號)
       if (window.google && google.accounts && google.accounts.id) {
         google.accounts.id.disableAutoSelect();
       }
-      
       location.reload();
     }
 
-    // 🔐 Google 登入 Callback：取得 JWT 並發送至後端驗證
+    // 🔐 Google 登入 Callback
     function handleCredentialResponse(response) {
       const msgDiv = document.getElementById('login-msg');
       msgDiv.innerText = "驗證授權憑證中，請稍候...";
       msgDiv.style.color = "#1976d2";
       
-      const idToken = response.credential; // 這是由 Google 簽發的安全 JWT
+      const idToken = response.credential; 
 
-      // 直接 fetch 驗證端點 (不用 callApi，因為尚未取得 Session)
       fetch(GAS_URL, {
         method: 'POST',
         body: JSON.stringify({ action: 'verifyLogin', data: { idToken: idToken } })
@@ -215,13 +210,12 @@
       .then(res => res.json())
       .then(json => {
         if (json.status === 'success' && json.data.sessionToken) {
-          // 驗證成功：取得金鑰並存入 LocalStorage
           sessionToken = json.data.sessionToken;
           localStorage.setItem('photo_sys_token', sessionToken);
 
           document.getElementById('login-screen').style.display = 'none';
           document.getElementById('main-app').style.display = 'block';
-          startApp(); // 啟動系統初始載入
+          startApp(); 
           showMessage(`登入成功\n${json.data.email}`, 'success');
         } else {
           throw new Error(json.message || "驗證失敗");
@@ -236,7 +230,7 @@
       });
     }
 
-    // 網頁載入時：檢查是否有 Token，若有則自動發動驗證
+    // 網頁載入時狀態檢查
     window.onload = () => {
       if (sessionToken) {
         document.getElementById('login-screen').style.display = 'flex';
@@ -248,7 +242,6 @@
           document.getElementById('main-app').style.display = 'block';
           startApp();
         }).catch(err => {
-          // 如果 Session 過期，登出清除
           logout(false); 
         });
       } else {
@@ -392,7 +385,7 @@
   <!-- 漂浮提示訊息 -->
   <div id="floating-msg" class="msg"></div>
 
-  <!-- 通用確認 Modal (Yes/No) -->
+  <!-- 通用確認 Modal -->
   <div id="modal-mask" class="modal-mask">
     <div id="modal-dialog" class="modal-dialog">
       <div id="modal-message" style="font-size:28px; margin-bottom:30px; color:#a30000; font-weight:bold;"></div>
@@ -635,17 +628,17 @@
               <tr data-uuid="${r.uuid}" data-orig-url="${r.photoUrl||''}" data-orig-status="${r.status||''}" data-orig-name="${r.name||''}">
                 <td>${r.grade}</td><td>${r.classNo}</td><td>${r.seatNo}</td><td>${r.name}</td><td>${r.sid}</td>
                 <td class="photo-url" style="word-break: break-all;">
-                  ${r.photoUrl ? `<a href="${r.photoUrl}" target="_blank" style="color:blue;">${r.photoUrl}</a>` : '<span style="color:#999;">尚未上傳</span>'}
+                  ${r.photoUrl ? `<a href="${r.photoUrl}" target="_blank" style="color:blue;">${r.photoUrl}</a>` : '<span style="color:#999; font-weight:bold;">尚未上傳</span>'}
                 </td>
                 <td class="photo-img" data-file-id="${extractDriveFileId(r.photoUrl)}">
                   ${r.photoUrl ? '<span class="loading-text">載入中...</span>' : '<span style="color:#999; font-weight:bold;">無相片</span>'}
                 </td>
                 <td class="status-cell">
-                  <span style="${r.status === '未上傳' ? 'color:#d32f2f; font-weight:bold;' : ''}">${r.status || '未上傳'}</span>
+                  <span style="${(!r.status || r.status === '未上傳') ? 'color:#d32f2f; font-weight:bold;' : ''}">${r.status || '未上傳'}</span>
                 </td>
                 <td>
                   <div style="display:flex; flex-direction:column; gap:6px; align-items:center;">
-                    ${r.uuid ? `
+                    ${r.uuid && String(r.uuid).trim() !== '' && String(r.uuid) !== 'undefined' ? `
                     <button class="modify-btn" onclick="editRow(this)">修改</button>
                     <button class="delete-btn" onclick="deleteRow(this)">刪除</button>
                     <button class="cancel-btn" onclick="cancelEdit(this)" style="font-size:14px; padding:4px 10px;">取消</button>
