@@ -40,11 +40,11 @@
       font-size: 16px; color: #777; margin-bottom: 35px; line-height: 1.5;
     }
 
-    /* ----- 主容器 ----- */
+    /* ----- 主容器 (加寬至 1450px 確保按鈕一行顯示) ----- */
     .main-container {
-      width: 1300px; margin: 0 auto; background: #fff;
+      width: 1450px; margin: 0 auto; background: #fff;
       border-radius: 10px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      padding: 20px; position: relative;
+      padding: 20px 30px; position: relative;
       display: none; /* 預設隱藏主畫面，登入後顯示 */
     }
     
@@ -62,7 +62,7 @@
     /* ----- 表單區塊 ----- */
     .form-row { display: flex; justify-content: space-between; }
     .form-box { background: linear-gradient(to bottom right, #e0f7fa, #fffde7); padding: 24px; border-radius: 14px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); display: flex; flex-direction: column; transition: all 0.3s ease; }
-    .left-form { width: 100%; max-width: 1500px; margin: 0 auto; }
+    .left-form { width: 100%; margin: 0 auto; }
     
     /* ----- 輸入欄位群組 ----- */
     .input-group { display: flex; align-items: center; gap: 15px; justify-content: flex-start; padding-left: 60px; margin-bottom: 12px; }
@@ -140,8 +140,6 @@
     .stats-box li { font-size: 24px; margin-bottom: 2px; padding: 6px 10px; border-radius: 8px; line-height: 1.0; }
     .stats-box li:nth-child(even) { background-color: #fff8e1; }
     .stats-box li:nth-child(odd) { background-color: #fffde7; }
-
-    /* ⚡️ 新增更新按鈕的旋轉動畫 */
     .hover-spin { transition: transform 0.4s ease; }
     .hover-spin:hover { transform: rotate(180deg); }
 
@@ -178,7 +176,7 @@
         const payload = { 
           action: action, 
           data: data,
-          sessionToken: sessionToken // 傳送 Token 驗證身份
+          sessionToken: sessionToken 
         };
         
         const response = await fetch(GAS_URL, {
@@ -204,7 +202,7 @@
       }
     }
 
-    // 🆕 登出功能
+    // 登出功能
     function logout(callBackend = true) {
       if (callBackend && sessionToken) {
         fetch(GAS_URL, {
@@ -316,7 +314,7 @@
       📁 照片資料夾狀態：<span id="folder-light" style="background: #e0e0e0; padding: 4px 12px; border-radius: 20px;">⚪ 檢查中...</span>
     </div>
 
-    <!-- ⚡️ 排版優化：拆分上方表單區與下方全寬按鈕區 -->
+    <!-- ⚡️ 表單區與統計表拆分排版 -->
     <div class="form-row">
       <div class="form-box left-form">
         <!-- 上半部：左邊輸入框，右邊統計表 -->
@@ -374,7 +372,7 @@
             <div class="stats-box" id="summary-content" style="position: sticky; top: 20px; align-self: start;">
               <h3 style="display: flex; align-items: center; justify-content: center; gap: 10px;">
                 📸 <span>照片處理統計表</span>
-                <!-- ⚡️ 新增手動更新按鈕 -->
+                <!-- ⚡️ 手動更新按鈕 -->
                 <button onclick="forceRefreshStats()" title="手動更新統計與狀態" style="background: none; border: none; cursor: pointer; color: #1976d2; font-size: 24px; padding: 0; outline: none;">
                   <i class="fas fa-sync-alt hover-spin"></i>
                 </button>
@@ -392,18 +390,19 @@
             <button class="btn btn-red" onclick="handleClear()"><i class="fas fa-eraser"></i> 清除</button>
             <button class="btn btn-blue" onclick="handleUnsubmitted()"><i class="fas fa-user-times"></i> 未上傳</button>
             <button class="btn btn-brown" onclick="showStatsTable()"><i class="fas fa-chart-bar"></i> 班級統計</button>
-            <button class="btn btn-yellow" onclick="window.open('https://mikania0000.github.io/New-student-PhotoRemoveBack/')"><i class="fas fa-cut"></i> 去背網頁</button>
+            <button class="btn btn-yellow" onclick="window.open('https://mikania0000.github.io/New-student-PhotoRemoveBack/')"><i class="fas fa-cut"></i> 去背</button>
             <button class="btn btn-orange" onclick="window.open('https://mikania0000.github.io/New-student-PhotoUpload/')"><i class="fas fa-cloud-upload-alt"></i> 上傳網頁</button>
             <button class="btn btn-pink" onclick="window.open('https://mikania0000.github.io/New-student-ParentQuery/')"><i class="fas fa-search-plus"></i> 編班查詢</button>
             <button class="btn btn-purple" onclick="showAdvancedSettings()"><i class="fas fa-cog"></i> 進階設定</button>
-            <button class="btn btn-dark" onclick="logout()"><i class="fas fa-sign-out-alt"></i> 安全登出</button>
+            <!-- ⚡️ 按鈕文字修改為"登出" -->
+            <button class="btn btn-dark" onclick="logout()"><i class="fas fa-sign-out-alt"></i> 登出</button>
           </div>
         </div>
 
       </div>
     </div>
     
-    <!-- 查詢結果顯示區 (移到卡片外部，確保版面乾淨) -->
+    <!-- 查詢結果顯示區 -->
     <div class="bottom-result" id="result-container"></div>
 
     <!-- 班級統計表顯示區 -->
@@ -415,6 +414,7 @@
       <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:16px; margin-bottom:25px; background:#f3e5f5; padding:20px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
         <button class="btn btn-purple advanced-btn" onclick="window.open('https://docs.google.com/spreadsheets/d/1-iIXTbEeIqzaMnWQowqyvOquqZQLJpnRCUST-mVZ1Tw/edit?gid=1164346300#gid=1164346300')"><i class="fas fa-table"></i> 原始工作表</button>
         
+        <!-- ⚡️ 清空資料 Tooltip 防呆 -->
         <div class="tooltip-container">
           <button class="btn btn-green advanced-btn" onclick="clearPhotoData()"><i class="fas fa-broom"></i> 清空資料</button>
           <div class="tooltip-text"><span style="color:#ffc107; font-weight:bold;">⚠️ 警告</span><br>這將會清空「全校名單」與「大頭照」中的所有資料紀錄，請謹慎操作！</div>
@@ -474,7 +474,7 @@
       <div style="text-align:left; color:#555; margin-bottom:15px; font-size:18px; line-height: 1.5; background: #e3f2fd; padding: 12px; border-radius: 8px; flex-shrink: 0;">
         <strong>📋 使用說明：</strong><br>
         您可以選擇 <strong style="color:#1976d2;">直接選擇 Excel 檔案</strong>，或是 <strong>複製純資料內容並貼上</strong>：<br>
-        1. 系統將自動識別必要欄位，<strong style="color:#d32f2f;">即使沒複製到標題列也沒關係！</strong><br>
+        1. 系統將自動識別必要欄位。<strong style="color:#d32f2f;">建議連同標題列一起複製貼上，若欄位順序不同系統會自動對應抓取！</strong><br>
         <span id="paste-keywords" style="background:#fff; padding:2px 8px; border-radius:4px; color:#d32f2f; font-weight:bold; border: 1px solid #ffcdd2;"></span><br>
         
         <div style="margin-top: 12px; padding: 10px; background: #fff8e1; border: 1px solid #ffecb3; border-radius: 6px;">
@@ -497,7 +497,7 @@
         </button>
         <span style="font-size: 16px; color: #666;">或在下方文字框貼上內容：</span>
       </div>
-      <textarea id="paste-textarea" placeholder="請在此貼上 Excel 資料 (可只貼數據)... 或使用上方按鈕選擇檔案"></textarea>
+      <textarea id="paste-textarea" placeholder="請在此貼上 Excel 資料 (建議包含標題列)... 或使用上方按鈕選擇檔案"></textarea>
       <div style="margin-top: 15px; flex-shrink: 0;">
         <button onclick="submitPasteImport()" style="font-size:24px; background:#43a047; color:#fff; border:none; border-radius:10px; padding:8px 28px; margin-right:24px; cursor:pointer;">
           <i class="fas fa-file-import"></i> 確定匯入 (貼上文字)
@@ -622,7 +622,7 @@
               </table>`;
             document.getElementById('result-container').innerHTML = html;
           }
-          updateSummaryStats(); // ⚡️ 查詢完順便更新統計表
+          updateSummaryStats();
         });
       });
     }
@@ -659,7 +659,7 @@
           currentAllData = allData;
           currentPage = 1;
           renderPage();
-          updateSummaryStats(); // ⚡️ 查詢完順便更新統計表
+          updateSummaryStats();
           showMessage('✅ 查詢成功', 'success', 2);
         });
       });
@@ -784,7 +784,7 @@
               const imgTd = row.querySelector('.photo-img');
               imgTd.setAttribute('data-file-id', extractDriveFileId(newPhoto));
               loadImages();
-              updateSummaryStats(); // ⚡️ 修改完成順便更新統計表
+              updateSummaryStats();
             } else { showMessage('❌ 更新失敗', 'error'); }
           });
         });
@@ -820,7 +820,7 @@
               showMessage('✅ 已刪除', 'success'); 
               row.remove(); 
               updateFolderStatus(); 
-              updateSummaryStats(); // ⚡️ 刪除完成順便更新統計表
+              updateSummaryStats();
             } 
             else { showMessage('❌ 刪除失敗', 'error'); }
           });
@@ -917,10 +917,16 @@
            finishProgress(() => { 
              showMessage('✅ 已清空', 'success'); 
              updateFolderStatus(); 
-             updateSummaryStats(); // ⚡️ 清空資料後順便更新統計表
+             updateSummaryStats();
            });
          });
       });
+    }
+
+    function forceRefreshStats() {
+      showMessage('⏳ 更新統計資料與狀態中...', 'info', 2);
+      updateSummaryStats();
+      updateFolderStatus();
     }
 
     // ------------------- 帳號管理邏輯 -------------------
@@ -990,7 +996,7 @@
       });
     }
 
-    // ------------------- 貼上 / 檔案匯入邏輯 (⚡️ 已徹底修復) -------------------
+    // ------------------- 貼上 / 檔案匯入邏輯 (⚡️ 包含 mode 參數傳遞) -------------------
     let currentImportType = '';
     function openImportModal(type) {
       currentImportType = type;
@@ -1003,6 +1009,7 @@
       document.getElementById('paste-modal').style.display = 'block';
     }
     function closeImportModal() { document.getElementById('paste-modal').style.display = 'none'; }
+    
     function handleFileSelect(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -1028,25 +1035,19 @@
       }, 100);
     }
     
-    // ⚡️ 貼上邏輯優化：自動處理空白與缺失標題
     function submitPasteImport() {
       const text = document.getElementById('paste-textarea').value.trim();
       if (!text) { showMessage('❌ 內容為空！請貼上資料或選擇檔案。', 'error'); return; }
       showProgress('解析文字資料中');
       setTimeout(() => {
-        // 先以換行符號分割每一列，並排除空白列
         const rows = text.split(/\r?\n/).filter(r => r.trim() !== '');
-        
-        // 判斷是 Tab 分隔 (標準 Excel) 還是空白分隔 (PDF 或特殊複製)
         const isTabSeparated = rows[0].includes('\t');
         
         let data2D = rows.map(row => {
           if (isTabSeparated) return row.split('\t').map(cell => cell.trim());
-          // 若無 Tab，則用一個或多個空白自動分割
           return row.trim().split(/\s+/);
         });
 
-        // ⚡️ 智慧補齊標題列：如果使用者只貼上數據，自動幫他加上正確的標題
         const firstRowStr = data2D[0].join('');
         const isStudent = currentImportType === 'student';
         const standardHeader = isStudent ? ['班級', '座號', '身分證後四碼', '姓名', '學號'] : ['班級', '導師'];
@@ -1068,6 +1069,7 @@
           ? ['班級', '座號', '身分證後四碼', '姓名', '學號'] : ['班級', '導師'];
         const missing = requiredHeaders.filter(h => !headerLine.includes(h));
         if (missing.length > 0) { finishProgress(() => showMessage(`❌ 缺少欄位：${missing.join(', ')}`, 'error', 5)); return; }
+        
         const colIndices = requiredHeaders.map(h => headerLine.indexOf(h));
         const listData = [];
         for (let i = 1; i < data2D.length; i++) {
@@ -1077,17 +1079,21 @@
           if (rowData.every(c => c === '')) continue;
           listData.push(rowData);
         }
+        
         if (listData.length === 0) { finishProgress(() => showMessage('❌ 沒有有效的資料列！', 'error')); return; }
         showProgress(`上傳 ${listData.length} 筆資料至資料庫中`);
         
+        // ⚡️ 準確抓取畫面的「覆蓋」或「接續保留」設定
         const mode = document.querySelector('input[name="importMode"]:checked').value;
         const apiAction = currentImportType === 'student' ? 'importList' : 'importTeacher';
         
+        // 傳遞參數與 mode 給 GS (GS 會自動計算最後一筆並接續貼上)
         callApi(apiAction, { listData: listData, mode: mode }).then(res => {
           finishProgress(() => {
             if (res && res.success) {
               showMessage(`✅ 成功匯入 ${listData.length} 筆資料！`, 'success');
-              closeImportModal(); updateSummaryStats(); 
+              closeImportModal(); 
+              updateSummaryStats(); 
             } else { showMessage('❌ 匯入失敗：' + (res.message || '未知原因'), 'error'); }
           });
         }).catch(err => { finishProgress(() => showMessage('❌ 匯入發生異常：' + err.message, 'error')); });
@@ -1101,20 +1107,10 @@
       seat.innerHTML = '<option value=""></option>' + Array.from({length:30}, (_,i) => `<option value="${String(i+1).padStart(2,'0')}">${String(i+1).padStart(2,'0')}</option>`).join('');
     }
 
-    // ⚡️ 新增手動更新按鈕邏輯
-    function forceRefreshStats() {
-      showMessage('⏳ 更新統計資料與狀態中...', 'info', 2);
-      updateSummaryStats();
-      updateFolderStatus();
-    }
-
     function startApp() {
       initSelects();
       updateSummaryStats();
       updateFolderStatus(); 
-      
-      // ⚡️ 已徹底移除 setInterval 定時器，避免背景持續頻繁存取 GS 導致當機。
-      // 現在已改為「手動按鈕更新」以及在「查詢/修改/刪除/清空」動作完成後自動順帶更新。
     }
 
     window.onload = () => {
