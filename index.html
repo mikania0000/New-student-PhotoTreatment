@@ -90,6 +90,23 @@
     .btn-gray { background: linear-gradient(to right, #757575, #9E9E9E); }
     .btn-dark { background: linear-gradient(to right, #2c3e50, #4ca1af); }
 
+    /* ----- Tooltip 提示 ----- */
+    .tooltip-container { position: relative; display: inline-flex; align-items: center; justify-content: center; margin: 0; }
+    .tooltip-text {
+      visibility: hidden; width: 260px; background-color: #333; color: #fff;
+      text-align: left; border-radius: 8px; padding: 12px;
+      position: absolute; z-index: 100; bottom: 110%; left: 50%;
+      transform: translateX(-50%); opacity: 0; transition: opacity 0.3s;
+      font-size: 16px; font-weight: normal; pointer-events: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3); line-height: 1.4;
+    }
+    .tooltip-text::after {
+      content: ""; position: absolute; top: 100%; left: 50%;
+      margin-left: -6px; border-width: 6px; border-style: solid;
+      border-color: #333 transparent transparent transparent;
+    }
+    .tooltip-container:hover .tooltip-text { visibility: visible; opacity: 1; }
+
     /* ----- 結果顯示區 ----- */
     .bottom-result { width: 100%; display: flex; flex-direction: column; align-items: center; margin-top: 30px; }
 
@@ -110,8 +127,13 @@
     .delete-btn { background-color: #e53935; color: white; border: none; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-weight: bold; }
     .cancel-btn { background-color: #f48fb1; color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 18px; }
 
-    /* ----- 統計盒子 ----- */
-    .stats-box { position: absolute; top: 290px; right: 280px; width: 340px; background: linear-gradient(to bottom right, #fff9c4, #fffde7); border-left: 10px solid #fbc02d; border-radius: 20px; box-shadow: 4px 4px 18px rgba(0, 0, 0, 0.18); padding: 24px 28px 20px 28px; font-size: 24px; color: #4e342e; z-index: 1000; }
+    /* ----- 統計盒子 (已修復覆蓋問題，移除 absolute) ----- */
+    .stats-box { 
+      width: 340px; background: linear-gradient(to bottom right, #fff9c4, #fffde7); 
+      border-left: 10px solid #fbc02d; border-radius: 20px; 
+      box-shadow: 4px 4px 18px rgba(0, 0, 0, 0.18); padding: 24px 28px 20px 28px; 
+      font-size: 24px; color: #4e342e; z-index: 1000; 
+    }
     .stats-box h3 { font-size: 32px; color: #e65100; margin: 5px 0 16px 0; padding-bottom: 6px; font-weight: bold; border-bottom: 2px solid #fbc02d; text-align: center; }
     .stats-box ul { list-style: none; padding-left: 0; margin: 0; }
     .stats-box li { font-size: 24px; margin-bottom: 2px; padding: 6px 10px; border-radius: 8px; line-height: 1.0; }
@@ -289,74 +311,82 @@
       📁 照片資料夾狀態：<span id="folder-light" style="background: #e0e0e0; padding: 4px 12px; border-radius: 20px;">⚪ 檢查中...</span>
     </div>
 
+    <!-- ⚡️ 優化 1: Flex 佈局防止統計表遮擋 -->
     <div class="form-row">
       <div class="form-box left-form">
-        <!-- 查詢條件區 -->
-        <div class="input-group">
-          <label for="grade">年級</label>
-          <select id="grade">
-            <option value="" selected></option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-            <option value="9">9</option>
-          </select>
-        </div>
-        <div class="input-group">
-          <label for="class">班級</label>
-          <select id="class"></select>
-        </div>
-        <div class="input-group">
-          <label for="seat">座號</label>
-          <select id="seat"></select>
-        </div>
-        <div class="input-group">
-          <label for="name">姓名</label>
-          <input id="name" type="text">
-        </div>
-        <div class="input-group">
-          <label for="sid">學號</label>
-          <input id="sid" type="text">
-        </div>
-        <div class="input-group">
-          <label for="repeat">重複上傳</label>
-          <select id="repeat">
-            <option value=""></option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4+">4次以上</option>
-          </select>
-        </div>
-        <div class="input-group">
-          <label for="status">處理情形</label>
-          <select id="status">
-            <option value=""> </option>
-            <option value="已上傳，合格">合格</option>
-            <option value="不合格">不合格</option>
-            <option value="審核中">審核中</option>
-          </select>
-        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 30px; align-items: flex-start;">
+          
+          <!-- 左半部輸入區域 -->
+          <div style="flex: 1; min-width: 650px;">
+            <!-- 查詢條件區 -->
+            <div class="input-group">
+              <label for="grade">年級</label>
+              <select id="grade">
+                <option value="" selected></option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label for="class">班級</label>
+              <select id="class"></select>
+            </div>
+            <div class="input-group">
+              <label for="seat">座號</label>
+              <select id="seat"></select>
+            </div>
+            <div class="input-group">
+              <label for="name">姓名</label>
+              <input id="name" type="text">
+            </div>
+            <div class="input-group">
+              <label for="sid">學號</label>
+              <input id="sid" type="text">
+            </div>
+            <div class="input-group">
+              <label for="repeat">重複上傳</label>
+              <select id="repeat">
+                <option value=""></option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4+">4次以上</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label for="status">處理情形</label>
+              <select id="status">
+                <option value=""> </option>
+                <option value="已上傳，合格">合格</option>
+                <option value="不合格">不合格</option>
+                <option value="審核中">審核中</option>
+              </select>
+            </div>
+            
+            <!-- 功能按鈕區 -->
+            <div class="button-group">
+              <button class="btn btn-green" onclick="handleQuery()"><i class="fas fa-search"></i> 查詢</button>
+              <button class="btn btn-red" onclick="handleClear()"><i class="fas fa-eraser"></i> 清除</button>
+              <button class="btn btn-blue" onclick="handleUnsubmitted()"><i class="fas fa-user-times"></i> 未上傳</button>
+              <button class="btn btn-brown" onclick="showStatsTable()"><i class="fas fa-chart-bar"></i> 班級統計</button>
+              <button class="btn btn-yellow" onclick="window.open('https://mikania0000.github.io/New-student-PhotoRemoveBack/')"><i class="fas fa-cut"></i> 去背網頁</button>
+              <button class="btn btn-orange" onclick="window.open('https://mikania0000.github.io/New-student-PhotoUpload/')"><i class="fas fa-cloud-upload-alt"></i> 上傳網頁</button>
+              <button class="btn btn-pink" onclick="window.open('https://mikania0000.github.io/New-student-ParentQuery/')"><i class="fas fa-search-plus"></i> 編班查詢</button>
+              <button class="btn btn-purple" onclick="showAdvancedSettings()"><i class="fas fa-cog"></i> 進階設定</button>
+              <!-- 登出按鈕 -->
+              <button class="btn btn-dark" onclick="logout()"><i class="fas fa-sign-out-alt"></i> 安全登出</button>
+            </div>
+          </div>
+
+          <!-- 右側統計資料 (改為 sticky 以防遮擋) -->
+          <div class="stats-box" id="summary-content" style="position: sticky; top: 20px;">
+            <h3>📸 <span>照片處理統計表</span></h3>
+            <div>⏳ 載入中...</div>
+          </div>
+
+        </div> <!-- /Flex wrapper -->
         
-        <!-- 右側統計資料 (漂浮) -->
-        <div class="stats-box" id="summary-content">
-          <h3>📸 <span>照片處理統計表</span></h3>
-          <div>⏳ 載入中...</div>
-        </div>
-
-        <!-- 功能按鈕區 -->
-        <div class="button-group">
-          <button class="btn btn-green" onclick="handleQuery()"><i class="fas fa-search"></i> 查詢</button>
-          <button class="btn btn-red" onclick="handleClear()"><i class="fas fa-eraser"></i> 清除</button>
-          <button class="btn btn-blue" onclick="handleUnsubmitted()"><i class="fas fa-user-times"></i> 未上傳</button>
-          <button class="btn btn-brown" onclick="showStatsTable()"><i class="fas fa-chart-bar"></i> 班級統計</button>
-          <button class="btn btn-yellow" onclick="window.open('https://mikania0000.github.io/New-student-PhotoRemoveBack/')"><i class="fas fa-cut"></i> 去背網頁</button>
-          <button class="btn btn-orange" onclick="window.open('https://mikania0000.github.io/New-student-PhotoUpload/')"><i class="fas fa-cloud-upload-alt"></i> 上傳網頁</button>
-          <button class="btn btn-pink" onclick="window.open('https://mikania0000.github.io/New-student-ParentQuery/')"><i class="fas fa-search-plus"></i> 編班查詢</button>
-          <button class="btn btn-purple" onclick="showAdvancedSettings()"><i class="fas fa-cog"></i> 進階設定</button>
-          <!-- 登出按鈕 -->
-          <button class="btn btn-dark" onclick="logout()"><i class="fas fa-sign-out-alt"></i> 安全登出</button>
-        </div>
-
-        <!-- 查詢結果顯示區 -->
+        <!-- 查詢結果顯示區 (移至統計表下方) -->
         <div class="bottom-result" id="result-container"></div>
       </div>
     </div>
@@ -369,7 +399,13 @@
       <h2 style="font-size:36px; color:#6a1b9a; margin-bottom:20px; text-shadow:1px 1px 3px rgba(0,0,0,0.2);">⚙️ 進階設定選單</h2>
       <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:16px; margin-bottom:25px; background:#f3e5f5; padding:20px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
         <button class="btn btn-purple advanced-btn" onclick="window.open('https://docs.google.com/spreadsheets/d/1-iIXTbEeIqzaMnWQowqyvOquqZQLJpnRCUST-mVZ1Tw/edit?gid=1164346300#gid=1164346300')"><i class="fas fa-table"></i> 原始工作表</button>
-        <button class="btn btn-green advanced-btn" onclick="clearPhotoData()"><i class="fas fa-broom"></i> 清空資料</button>
+        
+        <!-- ⚡️ 優化 4: 清空資料 Tooltip 防呆 -->
+        <div class="tooltip-container">
+          <button class="btn btn-green advanced-btn" onclick="clearPhotoData()"><i class="fas fa-broom"></i> 清空資料</button>
+          <div class="tooltip-text"><span style="color:#ffc107; font-weight:bold;">⚠️ 警告</span><br>這將會清空「全校名單」與「大頭照」中的所有資料紀錄，請謹慎操作！</div>
+        </div>
+
         <button class="btn btn-red advanced-btn" onclick="openImportModal('student')"><i class="fas fa-user-graduate"></i> 匯入新生名單</button>
         <button class="btn btn-blue advanced-btn" onclick="openImportModal('teacher')"><i class="fas fa-chalkboard-teacher"></i> 匯入導師名單</button>
         <button class="btn btn-orange advanced-btn" onclick="openPhotoFolder()"><i class="fas fa-folder-open"></i> 大頭照資料夾</button>
@@ -420,13 +456,27 @@
   <div id="paste-modal" class="modal-mask">
     <div id="paste-modal-dialog" class="modal-dialog">
       <h2 id="paste-modal-title" style="color:#1976d2; font-size:32px; font-weight:bold; margin-top: 0;">匯入資料</h2>
+      
+      <!-- ⚡️ 優化 2: 新增覆蓋或保留設定選項 -->
       <div style="text-align:left; color:#555; margin-bottom:15px; font-size:18px; line-height: 1.5; background: #e3f2fd; padding: 12px; border-radius: 8px; flex-shrink: 0;">
         <strong>📋 使用說明：</strong><br>
         您可以選擇 <strong style="color:#1976d2;">直接選擇 Excel 檔案</strong>，或是 <strong>複製 Excel 內容並貼上</strong>：<br>
         1. 系統將自動識別必要欄位：<br>
         <span id="paste-keywords" style="background:#fff; padding:2px 8px; border-radius:4px; color:#d32f2f; font-weight:bold; border: 1px solid #ffcdd2;"></span><br>
-        <strong style="color: #d32f2f;">⚠️ 注意：匯入時將會自動清空原有的資料表內容！</strong>
+        
+        <div style="margin-top: 12px; padding: 10px; background: #fff8e1; border: 1px solid #ffecb3; border-radius: 6px;">
+          <strong style="color: #f57c00;">⚙️ 匯入模式選擇：</strong><br>
+          <label style="margin-right: 15px; cursor: pointer;">
+            <input type="radio" name="importMode" value="overwrite" checked>
+            <span style="color: #d32f2f; font-weight: bold;">原資料刪除 (覆蓋現有資料)</span>
+          </label>
+          <label style="cursor: pointer;">
+            <input type="radio" name="importMode" value="append">
+            <span style="color: #388e3c; font-weight: bold;">原資料保留 (接續新增至下方)</span>
+          </label>
+        </div>
       </div>
+
       <div style="text-align: left; margin-bottom: 10px; flex-shrink: 0; display: flex; align-items: center; gap: 10px;">
         <input type="file" id="excel-file-input" accept=".xlsx, .xls, .csv" style="display: none;" onchange="handleFileSelect(event)">
         <button onclick="document.getElementById('excel-file-input').click()" style="font-size:20px; background:#1976d2; color:white; border:none; border-radius:8px; padding:8px 20px; cursor:pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
@@ -962,6 +1012,8 @@
         processAndImport2DArray(data2D);
       }, 100);
     }
+    
+    // ⚡️ 優化 3: 讀取 mode 模式一併傳遞給 GS
     function processAndImport2DArray(data2D) {
       showProgress('驗證與整理格式中');
       setTimeout(() => {
@@ -982,8 +1034,13 @@
         }
         if (listData.length === 0) { finishProgress(() => showMessage('❌ 沒有有效的資料列！', 'error')); return; }
         showProgress(`上傳 ${listData.length} 筆資料至資料庫中`);
+        
+        // 抓取保留/刪除的單選按鈕值
+        const mode = document.querySelector('input[name="importMode"]:checked').value;
         const apiAction = currentImportType === 'student' ? 'importList' : 'importTeacher';
-        callApi(apiAction, { listData }).then(res => {
+        
+        // 將模式傳送至後端
+        callApi(apiAction, { listData: listData, mode: mode }).then(res => {
           finishProgress(() => {
             if (res && res.success) {
               showMessage(`✅ 成功匯入 ${listData.length} 筆資料！`, 'success');
