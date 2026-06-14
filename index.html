@@ -116,20 +116,7 @@
     .msg-error { background: #d32f2f; }
     .msg-success { background: #388e3c; }
     .msg-info { background: #1976d2; }
-
-    /* ----- 新版中央超大載入動畫遮罩 ----- */
-    #progress-mask { 
-      position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
-      background: rgba(0,0,0,0.6); z-index: 10005; display: none; 
-      flex-direction: column; align-items: center; justify-content: center; 
-      backdrop-filter: blur(3px); 
-    }
-    #progress-box {
-      background: white; padding: 35px 50px; border-radius: 16px; 
-      display: flex; flex-direction: column; align-items: center; 
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    }
-    .spinner-icon { font-size: 50px; color: #1976d2; margin-bottom: 20px; }
+    .msg-progress { background: #ec407a; }
 
     /* ----- 表格樣式 ----- */
     table { width: 100%; border-collapse: collapse; font-size: 18px; text-align: center; background-color: #e3f2fd; border: 2px solid #90caf9; }
@@ -169,6 +156,20 @@
     
     #account-modal-dialog { width: 700px; max-width: 90%; max-height: 80vh; display: flex; flex-direction: column; border: 3px solid #8e24aa; }
     .account-table-container { overflow-y: auto; flex: 1; margin: 15px 0; border: 1px solid #ccc; border-radius: 8px; }
+
+    /* ----- 新版中央超大載入動畫遮罩 ----- */
+    #progress-mask { 
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
+      background: rgba(0,0,0,0.6); z-index: 10005; display: none; 
+      flex-direction: column; align-items: center; justify-content: center; 
+      backdrop-filter: blur(3px); 
+    }
+    #progress-box {
+      background: white; padding: 35px 50px; border-radius: 16px; 
+      display: flex; flex-direction: column; align-items: center; 
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    .spinner-icon { font-size: 50px; color: #1976d2; margin-bottom: 20px; }
 
     @media screen and (max-width: 1700px) { .main-container { width: 95%; } }
   </style>
