@@ -40,7 +40,7 @@
       font-size: 16px; color: #777; margin-bottom: 35px; line-height: 1.5;
     }
 
-    /* ----- 主容器 (加寬至 1450px 確保按鈕一行顯示) ----- */
+    /* ----- 主容器 ----- */
     .main-container {
       width: 1450px; margin: 0 auto; background: #fff;
       border-radius: 10px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -128,16 +128,19 @@
     .delete-btn { background-color: #e53935; color: white; border: none; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-weight: bold; }
     .cancel-btn { background-color: #f48fb1; color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 18px; }
 
-    /* ----- 統計盒子 ----- */
+    /* ----- 統計盒子 (⚡️ 修正加寬與不換行) ----- */
     .stats-box { 
-      width: 340px; background: linear-gradient(to bottom right, #fff9c4, #fffde7); 
+      width: 380px; /* 稍微加寬 */
+      background: linear-gradient(to bottom right, #fff9c4, #fffde7); 
       border-left: 10px solid #fbc02d; border-radius: 20px; 
-      box-shadow: 4px 4px 18px rgba(0, 0, 0, 0.18); padding: 24px 28px 20px 28px; 
+      box-shadow: 4px 4px 18px rgba(0, 0, 0, 0.18); 
+      padding: 20px 24px; 
       font-size: 24px; color: #4e342e; z-index: 1000; 
+      white-space: nowrap; /* 強制不換行 */
     }
-    .stats-box h3 { font-size: 32px; color: #e65100; margin: 5px 0 16px 0; padding-bottom: 6px; font-weight: bold; border-bottom: 2px solid #fbc02d; text-align: center; }
+    .stats-box h3 { font-size: 28px; color: #e65100; margin: 5px 0 16px 0; padding-bottom: 6px; font-weight: bold; border-bottom: 2px solid #fbc02d; text-align: center; white-space: nowrap; }
     .stats-box ul { list-style: none; padding-left: 0; margin: 0; }
-    .stats-box li { font-size: 24px; margin-bottom: 2px; padding: 6px 10px; border-radius: 8px; line-height: 1.0; }
+    .stats-box li { font-size: 22px; margin-bottom: 2px; padding: 6px 10px; border-radius: 8px; line-height: 1.0; white-space: nowrap; }
     .stats-box li:nth-child(even) { background-color: #fff8e1; }
     .stats-box li:nth-child(odd) { background-color: #fffde7; }
     .hover-spin { transition: transform 0.4s ease; }
@@ -314,14 +317,14 @@
       📁 照片資料夾狀態：<span id="folder-light" style="background: #e0e0e0; padding: 4px 12px; border-radius: 20px;">⚪ 檢查中...</span>
     </div>
 
-    <!-- ⚡️ 表單區與統計表拆分排版 -->
+    <!-- 表單區與統計表拆分排版 -->
     <div class="form-row">
       <div class="form-box left-form">
-        <!-- 上半部：左邊輸入框，右邊統計表 -->
-        <div style="display: flex; flex-wrap: wrap; gap: 30px; align-items: stretch;">
+        <!-- ⚡️ 上半部：左邊輸入框，右邊統計表 (調整 gap 讓它們靠更近) -->
+        <div style="display: flex; flex-wrap: nowrap; gap: 15px; align-items: stretch; justify-content: center;">
           
           <!-- 左半部輸入區域 -->
-          <div style="flex: 1; min-width: 650px; display: flex; flex-direction: column; justify-content: flex-start;">
+          <div style="flex: 1; max-width: 650px; display: flex; flex-direction: column; justify-content: flex-start;">
             <div class="input-group">
               <label for="grade">年級</label>
               <select id="grade">
@@ -368,11 +371,11 @@
           </div>
 
           <!-- 右側統計資料 -->
-          <div style="width: 360px; display: flex; justify-content: center;">
+          <div style="display: flex; justify-content: center;">
             <div class="stats-box" id="summary-content" style="position: sticky; top: 20px; align-self: start;">
               <h3 style="display: flex; align-items: center; justify-content: center; gap: 10px;">
                 📸 <span>照片處理統計表</span>
-                <!-- ⚡️ 手動更新按鈕 -->
+                <!-- 手動更新按鈕 -->
                 <button onclick="forceRefreshStats()" title="手動更新統計與狀態" style="background: none; border: none; cursor: pointer; color: #1976d2; font-size: 24px; padding: 0; outline: none;">
                   <i class="fas fa-sync-alt hover-spin"></i>
                 </button>
@@ -383,7 +386,7 @@
 
         </div> <!-- /上半部結束 -->
         
-        <!-- ⚡️ 下半部：功能按鈕區 (橫跨全版寬度) -->
+        <!-- 下半部：功能按鈕區 (橫跨全版寬度) -->
         <div class="button-group-wrapper">
           <div class="button-group">
             <button class="btn btn-green" onclick="handleQuery()"><i class="fas fa-search"></i> 查詢</button>
@@ -394,7 +397,6 @@
             <button class="btn btn-orange" onclick="window.open('https://mikania0000.github.io/New-student-PhotoUpload/')"><i class="fas fa-cloud-upload-alt"></i> 上傳網頁</button>
             <button class="btn btn-pink" onclick="window.open('https://mikania0000.github.io/New-student-ParentQuery/')"><i class="fas fa-search-plus"></i> 編班查詢</button>
             <button class="btn btn-purple" onclick="showAdvancedSettings()"><i class="fas fa-cog"></i> 進階設定</button>
-            <!-- ⚡️ 按鈕文字修改為"登出" -->
             <button class="btn btn-dark" onclick="logout()"><i class="fas fa-sign-out-alt"></i> 登出</button>
           </div>
         </div>
@@ -414,7 +416,7 @@
       <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:16px; margin-bottom:25px; background:#f3e5f5; padding:20px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
         <button class="btn btn-purple advanced-btn" onclick="window.open('https://docs.google.com/spreadsheets/d/1-iIXTbEeIqzaMnWQowqyvOquqZQLJpnRCUST-mVZ1Tw/edit?gid=1164346300#gid=1164346300')"><i class="fas fa-table"></i> 原始工作表</button>
         
-        <!-- ⚡️ 清空資料 Tooltip 防呆 -->
+        <!-- 清空資料 Tooltip 防呆 -->
         <div class="tooltip-container">
           <button class="btn btn-green advanced-btn" onclick="clearPhotoData()"><i class="fas fa-broom"></i> 清空資料</button>
           <div class="tooltip-text"><span style="color:#ffc107; font-weight:bold;">⚠️ 警告</span><br>這將會清空「全校名單」與「大頭照」中的所有資料紀錄，請謹慎操作！</div>
@@ -474,18 +476,18 @@
       <div style="text-align:left; color:#555; margin-bottom:15px; font-size:18px; line-height: 1.5; background: #e3f2fd; padding: 12px; border-radius: 8px; flex-shrink: 0;">
         <strong>📋 使用說明：</strong><br>
         您可以選擇 <strong style="color:#1976d2;">直接選擇 Excel 檔案</strong>，或是 <strong>複製純資料內容並貼上</strong>：<br>
-        1. 系統將自動識別必要欄位。<strong style="color:#d32f2f;">建議連同標題列一起複製貼上，若欄位順序不同系統會自動對應抓取！</strong><br>
+        1. 系統將自動識別必要欄位。<strong style="color:#d32f2f;">請務必連同最上方的「標題列」一起複製匯入！</strong><br>
         <span id="paste-keywords" style="background:#fff; padding:2px 8px; border-radius:4px; color:#d32f2f; font-weight:bold; border: 1px solid #ffcdd2;"></span><br>
         
         <div style="margin-top: 12px; padding: 10px; background: #fff8e1; border: 1px solid #ffecb3; border-radius: 6px;">
           <strong style="color: #f57c00;">⚙️ 匯入模式選擇：</strong><br>
           <label style="margin-right: 15px; cursor: pointer;">
             <input type="radio" name="importMode" value="overwrite" checked>
-            <span style="color: #d32f2f; font-weight: bold;">原資料刪除 (覆蓋現有資料)</span>
+            <span style="color: #d32f2f; font-weight: bold;">原資料刪除 (清空並覆蓋)</span>
           </label>
           <label style="cursor: pointer;">
             <input type="radio" name="importMode" value="append">
-            <span style="color: #388e3c; font-weight: bold;">原資料保留 (接續新增至下方)</span>
+            <span style="color: #388e3c; font-weight: bold;">原資料保留 (接續新增、自動剔除重複)</span>
           </label>
         </div>
       </div>
@@ -497,7 +499,7 @@
         </button>
         <span style="font-size: 16px; color: #666;">或在下方文字框貼上內容：</span>
       </div>
-      <textarea id="paste-textarea" placeholder="請在此貼上 Excel 資料 (建議包含標題列)... 或使用上方按鈕選擇檔案"></textarea>
+      <textarea id="paste-textarea" placeholder="請在此貼上 Excel 資料 (務必包含標題列)... 或使用上方按鈕選擇檔案"></textarea>
       <div style="margin-top: 15px; flex-shrink: 0;">
         <button onclick="submitPasteImport()" style="font-size:24px; background:#43a047; color:#fff; border:none; border-radius:10px; padding:8px 28px; margin-right:24px; cursor:pointer;">
           <i class="fas fa-file-import"></i> 確定匯入 (貼上文字)
@@ -520,6 +522,7 @@
     let progressInterval;
     let progressPercent = 0;
 
+    // ⚡️ 動畫載入進度條
     function showProgress(text = '處理中') {
       const mask = document.getElementById('progress-mask');
       const msg = document.getElementById('floating-msg');
@@ -536,7 +539,7 @@
             <div style="width: 100%; background: rgba(255,255,255,0.4); border-radius: 8px; height: 14px; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);">
               <div id="progress-bar-fill" style="width: ${progressPercent}%; background: #fff; height: 100%; border-radius: 8px; transition: width 0.4s ease-out;"></div>
             </div>
-            <div style="font-size: 15px; margin-top: 5px; opacity: 0.9;">資料傳輸中，請勿關閉網頁</div>
+            <div style="font-size: 15px; margin-top: 5px; opacity: 0.9;">資料傳輸與比對中，請勿關閉網頁</div>
           </div>
         `;
         msg.style.display = 'block';
@@ -842,7 +845,7 @@
     }
 
     function startRename(btn) {
-      const row = btn.closest('tr');
+      const row = closest('tr');
       const imgCell = row.querySelector('.photo-img');
       const nameDiv = imgCell.querySelector('div:last-child');
       if (!nameDiv) { showMessage("找不到圖片或檔名", "error"); return; }
@@ -996,7 +999,7 @@
       });
     }
 
-    // ------------------- 貼上 / 檔案匯入邏輯 (⚡️ 包含 mode 參數傳遞) -------------------
+    // ------------------- 貼上 / 檔案匯入邏輯 (⚡️ 嚴格檢查標題) -------------------
     let currentImportType = '';
     function openImportModal(type) {
       currentImportType = type;
@@ -1048,27 +1051,28 @@
           return row.trim().split(/\s+/);
         });
 
-        const firstRowStr = data2D[0].join('');
-        const isStudent = currentImportType === 'student';
-        const standardHeader = isStudent ? ['班級', '座號', '身分證後四碼', '姓名', '學號'] : ['班級', '導師'];
-        
-        if (!firstRowStr.includes('班級')) {
-          data2D.unshift(standardHeader);
-        }
-
         processAndImport2DArray(data2D);
       }, 100);
     }
     
     function processAndImport2DArray(data2D) {
-      showProgress('驗證與整理格式中');
+      showProgress('比對標題與整理格式中');
       setTimeout(() => {
-        if (data2D.length < 2) { finishProgress(() => showMessage('❌ 資料行數不足', 'error', 4)); return; }
+        if (data2D.length < 2) { 
+          finishProgress(() => showMessage('❌ 資料行數不足，請確保包含標題列與至少一筆資料。', 'error', 4)); 
+          return; 
+        }
+        
         const headerLine = data2D[0].map(h => String(h).trim());
         const requiredHeaders = currentImportType === 'student'
           ? ['班級', '座號', '身分證後四碼', '姓名', '學號'] : ['班級', '導師'];
+        
+        // ⚡️ 防呆：嚴格檢查是否缺少必填的標題列 (移除之前的自動猜測邏輯)
         const missing = requiredHeaders.filter(h => !headerLine.includes(h));
-        if (missing.length > 0) { finishProgress(() => showMessage(`❌ 缺少欄位：${missing.join(', ')}`, 'error', 5)); return; }
+        if (missing.length > 0) { 
+          finishProgress(() => showMessage(`❌ 缺少標題欄位：\n【${missing.join('、')}】\n請複製包含正確標題的第一列再匯入！`, 'error', 6)); 
+          return; 
+        }
         
         const colIndices = requiredHeaders.map(h => headerLine.indexOf(h));
         const listData = [];
@@ -1080,23 +1084,35 @@
           listData.push(rowData);
         }
         
-        if (listData.length === 0) { finishProgress(() => showMessage('❌ 沒有有效的資料列！', 'error')); return; }
-        showProgress(`上傳 ${listData.length} 筆資料至資料庫中`);
-        
-        // ⚡️ 準確抓取畫面的「覆蓋」或「接續保留」設定
+        if (listData.length === 0) { 
+          finishProgress(() => showMessage('❌ 找不到有效的資料列！', 'error')); 
+          return; 
+        }
+
         const mode = document.querySelector('input[name="importMode"]:checked').value;
         const apiAction = currentImportType === 'student' ? 'importList' : 'importTeacher';
         
-        // 傳遞參數與 mode 給 GS (GS 會自動計算最後一筆並接續貼上)
+        showProgress(`準備上傳並比對 ${listData.length} 筆資料`);
+        
+        // ⚡️ 傳遞參數給 GS (GS 會進行比對重複、接續寫入、並重新排序)
         callApi(apiAction, { listData: listData, mode: mode }).then(res => {
           finishProgress(() => {
             if (res && res.success) {
-              showMessage(`✅ 成功匯入 ${listData.length} 筆資料！`, 'success');
+              // ⚡️ 根據模式跳出不同的精確提示訊息
+              if (mode === 'append') {
+                showMessage(`✅ 接續匯入完成！\n成功新增: ${res.added} 筆\n重複剔除: ${res.duplicated} 筆\n(資料已自動重新排序)`, 'success', 6);
+              } else {
+                showMessage(`✅ 成功清空並匯入 ${res.added || listData.length} 筆資料！\n(資料已自動重新排序)`, 'success', 4);
+              }
               closeImportModal(); 
               updateSummaryStats(); 
-            } else { showMessage('❌ 匯入失敗：' + (res.message || '未知原因'), 'error'); }
+            } else { 
+              showMessage('❌ 匯入失敗：' + (res.message || '未知原因'), 'error'); 
+            }
           });
-        }).catch(err => { finishProgress(() => showMessage('❌ 匯入發生異常：' + err.message, 'error')); });
+        }).catch(err => { 
+          finishProgress(() => showMessage('❌ 匯入發生異常：' + err.message, 'error')); 
+        });
       }, 100);
     }
 
