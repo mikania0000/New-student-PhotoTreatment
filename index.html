@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>鳳甲國中新生照片管理系統</title>
+  <title>鳳甲國中新生照片管理系統 V2.2</title>
   <!-- 引入 Font Awesome 圖示 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -54,6 +54,12 @@
       background: linear-gradient(90deg, #2196f3, #42a5f5, #bbdefb);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.15); margin-bottom: 30px; letter-spacing: 2px;
+      display: flex; justify-content: center; align-items: center; gap: 15px;
+    }
+    .version-badge {
+      font-size: 26px; background: #e3f2fd; color: #1976d2; padding: 6px 14px; 
+      border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.15); 
+      border: 2px solid #90caf9; font-weight: bold;
     }
 
     /* ----- 資料夾狀態指示燈 ----- */
@@ -116,7 +122,20 @@
     .msg-error { background: #d32f2f; }
     .msg-success { background: #388e3c; }
     .msg-info { background: #1976d2; }
-    .msg-progress { background: #ec407a; }
+
+    /* ----- 新版中央超大載入動畫遮罩 ----- */
+    #progress-mask { 
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
+      background: rgba(0,0,0,0.6); z-index: 10005; display: none; 
+      flex-direction: column; align-items: center; justify-content: center; 
+      backdrop-filter: blur(3px); 
+    }
+    #progress-box {
+      background: white; padding: 35px 50px; border-radius: 16px; 
+      display: flex; flex-direction: column; align-items: center; 
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    .spinner-icon { font-size: 50px; color: #1976d2; margin-bottom: 20px; }
 
     /* ----- 表格樣式 ----- */
     table { width: 100%; border-collapse: collapse; font-size: 18px; text-align: center; background-color: #e3f2fd; border: 2px solid #90caf9; }
@@ -156,20 +175,6 @@
     
     #account-modal-dialog { width: 700px; max-width: 90%; max-height: 80vh; display: flex; flex-direction: column; border: 3px solid #8e24aa; }
     .account-table-container { overflow-y: auto; flex: 1; margin: 15px 0; border: 1px solid #ccc; border-radius: 8px; }
-
-    /* ----- 新版中央超大載入動畫遮罩 ----- */
-    #progress-mask { 
-      position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
-      background: rgba(0,0,0,0.6); z-index: 10005; display: none; 
-      flex-direction: column; align-items: center; justify-content: center; 
-      backdrop-filter: blur(3px); 
-    }
-    #progress-box {
-      background: white; padding: 35px 50px; border-radius: 16px; 
-      display: flex; flex-direction: column; align-items: center; 
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    }
-    .spinner-icon { font-size: 50px; color: #1976d2; margin-bottom: 20px; }
 
     @media screen and (max-width: 1700px) { .main-container { width: 95%; } }
   </style>
@@ -314,7 +319,10 @@
   </div>
 
   <div class="main-container" id="main-app">
-    <h1 class="main-title">鳳甲國中新生照片管理系統</h1>
+    <h1 class="main-title">
+      鳳甲國中新生照片管理系統 
+      <span class="version-badge">V2.2</span>
+    </h1>
     
     <div id="folder-status">
       📁 照片資料夾狀態：<span id="folder-light" style="background: #e0e0e0; padding: 4px 12px; border-radius: 20px;">⚪ 檢查中...</span>
@@ -983,7 +991,7 @@
       });
     }
 
-    // ------------------- 貼上 / 檔案匯入邏輯 -------------------
+    // ------------------- 貼上 / 檔案匯入邏輯 (⚡️ 同步防呆驗證) -------------------
     let currentImportType = '';
     function openImportModal(type) {
       currentImportType = type;
@@ -1001,74 +1009,59 @@
       const file = event.target.files[0];
       if (!file) return;
       
-      // ⚡️ 使用 requestAnimationFrame 保證瀏覽器先顯示進度條，再執行高強度運算
-      showProgress('讀取 Excel 檔案中');
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          const reader = new FileReader();
-          reader.onload = function(e) {
-            showProgress('解析 Excel 內容中');
-            requestAnimationFrame(() => {
-              requestAnimationFrame(() => {
-                try {
-                  const data = new Uint8Array(e.target.result);
-                  const workbook = XLSX.read(data, {type: 'array'});
-                  const ws = workbook.Sheets[workbook.SheetNames[0]];
-                  const json = XLSX.utils.sheet_to_json(ws, {header: 1, defval: ""});
-                  event.target.value = '';
-                  processAndImport2DArray(json);
-                } catch (err) {
-                  finishProgress(() => showMessage("❌ 解析 Excel 失敗！請確定檔案格式正確。", "error", 4));
-                }
-              });
-            });
-          };
-          reader.readAsArrayBuffer(file);
-        });
-      });
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, {type: 'array'});
+          const ws = workbook.Sheets[workbook.SheetNames[0]];
+          const json = XLSX.utils.sheet_to_json(ws, {header: 1, defval: ""});
+          event.target.value = '';
+          processAndImport2DArray(json);
+        } catch (err) {
+          showMessage("❌ 解析 Excel 失敗！請確定檔案格式正確。", "error", 4);
+        }
+      };
+      reader.readAsArrayBuffer(file);
     }
     
     function submitPasteImport() {
       const text = document.getElementById('paste-textarea').value.trim();
       if (!text) { showMessage('❌ 內容為空！請貼上資料或選擇檔案。', 'error'); return; }
       
-      showProgress('解析文字資料中');
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          const rows = text.split(/\r?\n/).filter(r => r.trim() !== '');
-          const isTabSeparated = rows[0].includes('\t');
-          
-          let data2D = rows.map(row => {
-            if (isTabSeparated) return row.split('\t').map(cell => cell.trim());
-            return row.trim().split(/\s+/);
-          });
-
-          processAndImport2DArray(data2D);
-        });
+      const rows = text.split(/\r?\n/).filter(r => r.trim() !== '');
+      const isTabSeparated = rows[0].includes('\t');
+      
+      let data2D = rows.map(row => {
+        if (isTabSeparated) return row.split('\t').map(cell => cell.trim());
+        return row.trim().split(/\s+/);
       });
+
+      processAndImport2DArray(data2D);
     }
     
     function processAndImport2DArray(data2D) {
-      showProgress('比對標題與整理格式中');
+      // ⚡️ 1. 執行同步防呆檢查 (此時尚未顯示任何進度動畫)
+      if (!data2D || data2D.length < 2) { 
+        showMessage('❌ 資料行數不足，請確保包含標題列與至少一筆資料。', 'error', 4); 
+        return; 
+      }
+      
+      const headerLine = data2D[0].map(h => String(h).trim());
+      const requiredHeaders = currentImportType === 'student'
+        ? ['班級', '座號', '身分證後四碼', '姓名', '學號'] : ['班級', '導師'];
+      
+      const missing = requiredHeaders.filter(h => !headerLine.includes(h));
+      if (missing.length > 0) { 
+        showMessage(`❌ 缺少標題欄位：\n【${missing.join('、')}】\n請複製包含正確標題的第一列再匯入！`, 'error', 6); 
+        return; 
+      }
+
+      // ⚡️ 2. 標題檢查通過！現在才啟動進度動畫並開始處理
+      showProgress('整理格式與比對資料中');
       
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          if (data2D.length < 2) { 
-            finishProgress(() => showMessage('❌ 資料行數不足，請確保包含標題列與至少一筆資料。', 'error', 4)); 
-            return; 
-          }
-          
-          const headerLine = data2D[0].map(h => String(h).trim());
-          const requiredHeaders = currentImportType === 'student'
-            ? ['班級', '座號', '身分證後四碼', '姓名', '學號'] : ['班級', '導師'];
-          
-          // ⚡️ 嚴格檢查標題，不再自動補齊
-          const missing = requiredHeaders.filter(h => !headerLine.includes(h));
-          if (missing.length > 0) { 
-            finishProgress(() => showMessage(`❌ 缺少標題欄位：\n【${missing.join('、')}】\n請複製包含正確標題的第一列再匯入！`, 'error', 6)); 
-            return; 
-          }
-          
           const colIndices = requiredHeaders.map(h => headerLine.indexOf(h));
           const listData = [];
           for (let i = 1; i < data2D.length; i++) {
@@ -1087,6 +1080,7 @@
           const mode = document.querySelector('input[name="importMode"]:checked').value;
           const apiAction = currentImportType === 'student' ? 'importList' : 'importTeacher';
           
+          // 更新畫面提示文字
           showProgress(`準備上傳並比對 ${listData.length} 筆資料`);
           
           callApi(apiAction, { listData: listData, mode: mode }).then(res => {
